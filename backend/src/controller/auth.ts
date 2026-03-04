@@ -1,5 +1,78 @@
-import { Request, Response } from "express";
+import { CookieOptions, Request, Response } from "express";
+import { prisma } from "../prisma";
+import bcrypt from 'bcrypt'
+import { Role } from "../generated/prisma/enums";
+import jwt from 'jsonwebtoken';
+import dotenv from "dotenv";
 
-export const register = (req: Request, res: Response) => {
-    res.status(201).json({success: true, message: "User registration successful", data: {}})
-}
+dotenv.config()
+
+const jwt_secret = process.env.JWT_SECRET!
+const saltRounds = 12
+const cookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: true,
+  maxAge: 24 * 60 * 60 * 1000,
+};
+
+const generateToken = (payload: string | object | Buffer<ArrayBufferLike>) => {
+  return jwt.sign(payload, jwt_secret , { expiresIn: "1h" });
+};
+
+export const register = async (req: Request, res: Response) => {
+  const { username, mobileNumber, profileImage, email, password, role } =
+    req.body;
+
+  try {
+    if (!email || !password || !role || !username || !mobileNumber) {
+      return res
+        .status(400)
+        .json({success:false, message: "Mandatory fields are missing" });
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+        role: role as Role,
+        mobileNumber,
+        profileImage,
+      },
+      select: {
+        userId: true,
+        username: true,
+        email: true,
+        role: true,
+        mobileNumber: true,
+        profileImage: true,
+        createdAt: true,
+      }, // No password in response
+    });
+
+    const payload = { userId: user.userId, email: user.email, role: user.role };
+    const token = generateToken(payload);
+    res.cookie("token", token, cookieOptions);
+    return res
+      .status(200)
+      .json({ success: true, message: "User registered successfully", user });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(400)
+      .json({ success: false, message: `Error in registering user: ${error}` });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
