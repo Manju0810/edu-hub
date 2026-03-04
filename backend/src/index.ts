@@ -11,8 +11,8 @@ app.use(cors({
     origin: "http://localhost:5173", 
     credentials: true  
 }))
-app.use("/api/auth", authPayload)
 app.use(express.json())
+app.use("/api/auth", authPayload)
 
 app.listen(process.env.PORT, () => {
     console.info(`Server is running on port ${process.env.PORT}`)
