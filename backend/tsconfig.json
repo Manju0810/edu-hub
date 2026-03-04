@@ -43,5 +43,5 @@
     "skipLibCheck": true,
 
   },
-  "exclude": ["eslint.config.mts"]
+  "exclude": ["eslint.config.mts", ".prisma", "prisma.config.ts",  ]
 }
