@@ -16,8 +16,8 @@ interface StudentQuery {
   search?: string;
 }
 //Request<Params, ResBody, ReqBody, ReqQuery> //TQuery means  if no query is provided then it will be defaults to {}
-export interface CustomRequest<TQuery = {}> 
-  extends Request<{}, {}, {}, TQuery> {
+export interface CustomRequest<TQuery = object> 
+  extends Request<object, object, object, TQuery> {
   user?: AuthPayload;
 }
 

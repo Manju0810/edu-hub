@@ -25,7 +25,7 @@ enum Level {
 }
 
 model User {
-  userId           Int      @id @default(autoincrement())
+  userId           String      @id @default(uuid())
   username     String   @unique @db.VarChar(100)
   email        String   @unique @db.VarChar(150)
   role         Role
@@ -37,12 +37,12 @@ model User {
 }
 
 model Course {
-  courseId           Int      @id @default(autoincrement())
+  courseId           String      @id @default(uuid())
   title     String   @db.VarChar(100)
   description        String    @db.VarChar(255)
   courseStartDate DateTime 
   courseEndDate DateTime  
-  userId Int
+  userId String
   creator User @relation("UserCourses", fields: [userId], references: [userId])
   category     String   @db.VarChar(100)
   level    Level

@@ -20,40 +20,28 @@ export type CourseModel = runtime.Types.Result.DefaultSelection<Prisma.$CoursePa
 
 export type AggregateCourse = {
   _count: CourseCountAggregateOutputType | null
-  _avg: CourseAvgAggregateOutputType | null
-  _sum: CourseSumAggregateOutputType | null
   _min: CourseMinAggregateOutputType | null
   _max: CourseMaxAggregateOutputType | null
 }
 
-export type CourseAvgAggregateOutputType = {
-  courseId: number | null
-  userId: number | null
-}
-
-export type CourseSumAggregateOutputType = {
-  courseId: number | null
-  userId: number | null
-}
-
 export type CourseMinAggregateOutputType = {
-  courseId: number | null
+  courseId: string | null
   title: string | null
   description: string | null
   courseStartDate: Date | null
   courseEndDate: Date | null
-  userId: number | null
+  userId: string | null
   category: string | null
   level: $Enums.Level | null
 }
 
 export type CourseMaxAggregateOutputType = {
-  courseId: number | null
+  courseId: string | null
   title: string | null
   description: string | null
   courseStartDate: Date | null
   courseEndDate: Date | null
-  userId: number | null
+  userId: string | null
   category: string | null
   level: $Enums.Level | null
 }
@@ -70,16 +58,6 @@ export type CourseCountAggregateOutputType = {
   _all: number
 }
 
-
-export type CourseAvgAggregateInputType = {
-  courseId?: true
-  userId?: true
-}
-
-export type CourseSumAggregateInputType = {
-  courseId?: true
-  userId?: true
-}
 
 export type CourseMinAggregateInputType = {
   courseId?: true
@@ -153,18 +131,6 @@ export type CourseAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: CourseAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: CourseSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: CourseMinAggregateInputType
@@ -195,24 +161,20 @@ export type CourseGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: CourseCountAggregateInputType | true
-  _avg?: CourseAvgAggregateInputType
-  _sum?: CourseSumAggregateInputType
   _min?: CourseMinAggregateInputType
   _max?: CourseMaxAggregateInputType
 }
 
 export type CourseGroupByOutputType = {
-  courseId: number
+  courseId: string
   title: string
   description: string
   courseStartDate: Date
   courseEndDate: Date
-  userId: number
+  userId: string
   category: string
   level: $Enums.Level
   _count: CourseCountAggregateOutputType | null
-  _avg: CourseAvgAggregateOutputType | null
-  _sum: CourseSumAggregateOutputType | null
   _min: CourseMinAggregateOutputType | null
   _max: CourseMaxAggregateOutputType | null
 }
@@ -236,12 +198,12 @@ export type CourseWhereInput = {
   AND?: Prisma.CourseWhereInput | Prisma.CourseWhereInput[]
   OR?: Prisma.CourseWhereInput[]
   NOT?: Prisma.CourseWhereInput | Prisma.CourseWhereInput[]
-  courseId?: Prisma.IntFilter<"Course"> | number
+  courseId?: Prisma.StringFilter<"Course"> | string
   title?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.IntFilter<"Course"> | number
+  userId?: Prisma.StringFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -260,7 +222,7 @@ export type CourseOrderByWithRelationInput = {
 }
 
 export type CourseWhereUniqueInput = Prisma.AtLeast<{
-  courseId?: number
+  courseId?: string
   AND?: Prisma.CourseWhereInput | Prisma.CourseWhereInput[]
   OR?: Prisma.CourseWhereInput[]
   NOT?: Prisma.CourseWhereInput | Prisma.CourseWhereInput[]
@@ -268,7 +230,7 @@ export type CourseWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.IntFilter<"Course"> | number
+  userId?: Prisma.StringFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -284,27 +246,26 @@ export type CourseOrderByWithAggregationInput = {
   category?: Prisma.SortOrder
   level?: Prisma.SortOrder
   _count?: Prisma.CourseCountOrderByAggregateInput
-  _avg?: Prisma.CourseAvgOrderByAggregateInput
   _max?: Prisma.CourseMaxOrderByAggregateInput
   _min?: Prisma.CourseMinOrderByAggregateInput
-  _sum?: Prisma.CourseSumOrderByAggregateInput
 }
 
 export type CourseScalarWhereWithAggregatesInput = {
   AND?: Prisma.CourseScalarWhereWithAggregatesInput | Prisma.CourseScalarWhereWithAggregatesInput[]
   OR?: Prisma.CourseScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CourseScalarWhereWithAggregatesInput | Prisma.CourseScalarWhereWithAggregatesInput[]
-  courseId?: Prisma.IntWithAggregatesFilter<"Course"> | number
+  courseId?: Prisma.StringWithAggregatesFilter<"Course"> | string
   title?: Prisma.StringWithAggregatesFilter<"Course"> | string
   description?: Prisma.StringWithAggregatesFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeWithAggregatesFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeWithAggregatesFilter<"Course"> | Date | string
-  userId?: Prisma.IntWithAggregatesFilter<"Course"> | number
+  userId?: Prisma.StringWithAggregatesFilter<"Course"> | string
   category?: Prisma.StringWithAggregatesFilter<"Course"> | string
   level?: Prisma.EnumLevelWithAggregatesFilter<"Course"> | $Enums.Level
 }
 
 export type CourseCreateInput = {
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
@@ -315,17 +276,18 @@ export type CourseCreateInput = {
 }
 
 export type CourseUncheckedCreateInput = {
-  courseId?: number
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
   courseEndDate: Date | string
-  userId: number
+  userId: string
   category: string
   level: $Enums.Level
 }
 
 export type CourseUpdateInput = {
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,28 +298,29 @@ export type CourseUpdateInput = {
 }
 
 export type CourseUncheckedUpdateInput = {
-  courseId?: Prisma.IntFieldUpdateOperationsInput | number
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
 }
 
 export type CourseCreateManyInput = {
-  courseId?: number
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
   courseEndDate: Date | string
-  userId: number
+  userId: string
   category: string
   level: $Enums.Level
 }
 
 export type CourseUpdateManyMutationInput = {
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -367,12 +330,12 @@ export type CourseUpdateManyMutationInput = {
 }
 
 export type CourseUncheckedUpdateManyInput = {
-  courseId?: Prisma.IntFieldUpdateOperationsInput | number
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
 }
@@ -398,11 +361,6 @@ export type CourseCountOrderByAggregateInput = {
   level?: Prisma.SortOrder
 }
 
-export type CourseAvgOrderByAggregateInput = {
-  courseId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
-}
-
 export type CourseMaxOrderByAggregateInput = {
   courseId?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -423,11 +381,6 @@ export type CourseMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   category?: Prisma.SortOrder
   level?: Prisma.SortOrder
-}
-
-export type CourseSumOrderByAggregateInput = {
-  courseId?: Prisma.SortOrder
-  userId?: Prisma.SortOrder
 }
 
 export type CourseCreateNestedManyWithoutCreatorInput = {
@@ -477,6 +430,7 @@ export type EnumLevelFieldUpdateOperationsInput = {
 }
 
 export type CourseCreateWithoutCreatorInput = {
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
@@ -486,7 +440,7 @@ export type CourseCreateWithoutCreatorInput = {
 }
 
 export type CourseUncheckedCreateWithoutCreatorInput = {
-  courseId?: number
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
@@ -525,18 +479,18 @@ export type CourseScalarWhereInput = {
   AND?: Prisma.CourseScalarWhereInput | Prisma.CourseScalarWhereInput[]
   OR?: Prisma.CourseScalarWhereInput[]
   NOT?: Prisma.CourseScalarWhereInput | Prisma.CourseScalarWhereInput[]
-  courseId?: Prisma.IntFilter<"Course"> | number
+  courseId?: Prisma.StringFilter<"Course"> | string
   title?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.IntFilter<"Course"> | number
+  userId?: Prisma.StringFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
 }
 
 export type CourseCreateManyCreatorInput = {
-  courseId?: number
+  courseId?: string
   title: string
   description: string
   courseStartDate: Date | string
@@ -546,6 +500,7 @@ export type CourseCreateManyCreatorInput = {
 }
 
 export type CourseUpdateWithoutCreatorInput = {
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -555,7 +510,7 @@ export type CourseUpdateWithoutCreatorInput = {
 }
 
 export type CourseUncheckedUpdateWithoutCreatorInput = {
-  courseId?: Prisma.IntFieldUpdateOperationsInput | number
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -565,7 +520,7 @@ export type CourseUncheckedUpdateWithoutCreatorInput = {
 }
 
 export type CourseUncheckedUpdateManyWithoutCreatorInput = {
-  courseId?: Prisma.IntFieldUpdateOperationsInput | number
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -640,12 +595,12 @@ export type $CoursePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     creator: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    courseId: number
+    courseId: string
     title: string
     description: string
     courseStartDate: Date
     courseEndDate: Date
-    userId: number
+    userId: string
     category: string
     level: $Enums.Level
   }, ExtArgs["result"]["course"]>
@@ -1072,12 +1027,12 @@ export interface Prisma__CourseClient<T, Null = never, ExtArgs extends runtime.T
  * Fields of the Course model
  */
 export interface CourseFieldRefs {
-  readonly courseId: Prisma.FieldRef<"Course", 'Int'>
+  readonly courseId: Prisma.FieldRef<"Course", 'String'>
   readonly title: Prisma.FieldRef<"Course", 'String'>
   readonly description: Prisma.FieldRef<"Course", 'String'>
   readonly courseStartDate: Prisma.FieldRef<"Course", 'DateTime'>
   readonly courseEndDate: Prisma.FieldRef<"Course", 'DateTime'>
-  readonly userId: Prisma.FieldRef<"Course", 'Int'>
+  readonly userId: Prisma.FieldRef<"Course", 'String'>
   readonly category: Prisma.FieldRef<"Course", 'String'>
   readonly level: Prisma.FieldRef<"Course", 'Level'>
 }
