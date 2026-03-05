@@ -116,6 +116,23 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
+export type EnumLevelFilter<$PrismaModel = never> = {
+  equals?: $Enums.Level | Prisma.EnumLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLevelFilter<$PrismaModel> | $Enums.Level
+}
+
+export type EnumLevelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Level | Prisma.EnumLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLevelWithAggregatesFilter<$PrismaModel> | $Enums.Level
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLevelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLevelFilter<$PrismaModel>
+}
+
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -225,6 +242,23 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type NestedEnumLevelFilter<$PrismaModel = never> = {
+  equals?: $Enums.Level | Prisma.EnumLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLevelFilter<$PrismaModel> | $Enums.Level
+}
+
+export type NestedEnumLevelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Level | Prisma.EnumLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Level[] | Prisma.ListEnumLevelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLevelWithAggregatesFilter<$PrismaModel> | $Enums.Level
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLevelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLevelFilter<$PrismaModel>
 }
 
 
