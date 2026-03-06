@@ -24,6 +24,12 @@ enum Level {
   Advanced
 }
 
+enum MaterialType {
+  Lecture_Slides
+  Video
+  Quiz
+}
+
 model User {
   userId           String      @id @default(uuid())
   username     String   @unique @db.VarChar(100)
@@ -46,4 +52,17 @@ model Course {
   creator User @relation("UserCourses", fields: [userId], references: [userId])
   category     String   @db.VarChar(100)
   level    Level
+  materials Material[] @relation("courseMaterials")
 }
+
+model Material {
+  materialId           String      @id @default(uuid())
+  courseId String @db.Uuid
+  course Course @relation("courseMaterials", fields: [courseId], references: [courseId])
+  title     String   @db.VarChar(100)
+  description        String    @db.VarChar(255)
+  uploadDate DateTime @default(now())  
+  URL String? @db.VarChar(500)
+  contentType    MaterialType
+}
+
