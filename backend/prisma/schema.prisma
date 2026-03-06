@@ -42,7 +42,7 @@ model Course {
   description        String    @db.VarChar(255)
   courseStartDate DateTime 
   courseEndDate DateTime  
-  userId String
+  userId String @db.Uuid
   creator User @relation("UserCourses", fields: [userId], references: [userId])
   category     String   @db.VarChar(100)
   level    Level

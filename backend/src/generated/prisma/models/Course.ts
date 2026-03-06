@@ -203,7 +203,7 @@ export type CourseWhereInput = {
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.StringFilter<"Course"> | string
+  userId?: Prisma.UuidFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -230,7 +230,7 @@ export type CourseWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.StringFilter<"Course"> | string
+  userId?: Prisma.UuidFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -259,7 +259,7 @@ export type CourseScalarWhereWithAggregatesInput = {
   description?: Prisma.StringWithAggregatesFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeWithAggregatesFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeWithAggregatesFilter<"Course"> | Date | string
-  userId?: Prisma.StringWithAggregatesFilter<"Course"> | string
+  userId?: Prisma.UuidWithAggregatesFilter<"Course"> | string
   category?: Prisma.StringWithAggregatesFilter<"Course"> | string
   level?: Prisma.EnumLevelWithAggregatesFilter<"Course"> | $Enums.Level
 }
@@ -484,7 +484,7 @@ export type CourseScalarWhereInput = {
   description?: Prisma.StringFilter<"Course"> | string
   courseStartDate?: Prisma.DateTimeFilter<"Course"> | Date | string
   courseEndDate?: Prisma.DateTimeFilter<"Course"> | Date | string
-  userId?: Prisma.StringFilter<"Course"> | string
+  userId?: Prisma.UuidFilter<"Course"> | string
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
 }
