@@ -27,3 +27,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type Course = Prisma.CourseModel
+/**
+ * Model Material
+ * 
+ */
+export type Material = Prisma.MaterialModel

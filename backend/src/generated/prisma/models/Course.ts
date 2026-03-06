@@ -207,6 +207,7 @@ export type CourseWhereInput = {
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  materials?: Prisma.MaterialListRelationFilter
 }
 
 export type CourseOrderByWithRelationInput = {
@@ -219,6 +220,7 @@ export type CourseOrderByWithRelationInput = {
   category?: Prisma.SortOrder
   level?: Prisma.SortOrder
   creator?: Prisma.UserOrderByWithRelationInput
+  materials?: Prisma.MaterialOrderByRelationAggregateInput
 }
 
 export type CourseWhereUniqueInput = Prisma.AtLeast<{
@@ -234,6 +236,7 @@ export type CourseWhereUniqueInput = Prisma.AtLeast<{
   category?: Prisma.StringFilter<"Course"> | string
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  materials?: Prisma.MaterialListRelationFilter
 }, "courseId">
 
 export type CourseOrderByWithAggregationInput = {
@@ -273,6 +276,7 @@ export type CourseCreateInput = {
   category: string
   level: $Enums.Level
   creator: Prisma.UserCreateNestedOneWithoutCoursesInput
+  materials?: Prisma.MaterialCreateNestedManyWithoutCourseInput
 }
 
 export type CourseUncheckedCreateInput = {
@@ -284,6 +288,7 @@ export type CourseUncheckedCreateInput = {
   userId: string
   category: string
   level: $Enums.Level
+  materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseInput
 }
 
 export type CourseUpdateInput = {
@@ -295,6 +300,7 @@ export type CourseUpdateInput = {
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
   creator?: Prisma.UserUpdateOneRequiredWithoutCoursesNestedInput
+  materials?: Prisma.MaterialUpdateManyWithoutCourseNestedInput
 }
 
 export type CourseUncheckedUpdateInput = {
@@ -306,6 +312,7 @@ export type CourseUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
+  materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseNestedInput
 }
 
 export type CourseCreateManyInput = {
@@ -383,6 +390,11 @@ export type CourseMinOrderByAggregateInput = {
   level?: Prisma.SortOrder
 }
 
+export type CourseScalarRelationFilter = {
+  is?: Prisma.CourseWhereInput
+  isNot?: Prisma.CourseWhereInput
+}
+
 export type CourseCreateNestedManyWithoutCreatorInput = {
   create?: Prisma.XOR<Prisma.CourseCreateWithoutCreatorInput, Prisma.CourseUncheckedCreateWithoutCreatorInput> | Prisma.CourseCreateWithoutCreatorInput[] | Prisma.CourseUncheckedCreateWithoutCreatorInput[]
   connectOrCreate?: Prisma.CourseCreateOrConnectWithoutCreatorInput | Prisma.CourseCreateOrConnectWithoutCreatorInput[]
@@ -429,6 +441,20 @@ export type EnumLevelFieldUpdateOperationsInput = {
   set?: $Enums.Level
 }
 
+export type CourseCreateNestedOneWithoutMaterialsInput = {
+  create?: Prisma.XOR<Prisma.CourseCreateWithoutMaterialsInput, Prisma.CourseUncheckedCreateWithoutMaterialsInput>
+  connectOrCreate?: Prisma.CourseCreateOrConnectWithoutMaterialsInput
+  connect?: Prisma.CourseWhereUniqueInput
+}
+
+export type CourseUpdateOneRequiredWithoutMaterialsNestedInput = {
+  create?: Prisma.XOR<Prisma.CourseCreateWithoutMaterialsInput, Prisma.CourseUncheckedCreateWithoutMaterialsInput>
+  connectOrCreate?: Prisma.CourseCreateOrConnectWithoutMaterialsInput
+  upsert?: Prisma.CourseUpsertWithoutMaterialsInput
+  connect?: Prisma.CourseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CourseUpdateToOneWithWhereWithoutMaterialsInput, Prisma.CourseUpdateWithoutMaterialsInput>, Prisma.CourseUncheckedUpdateWithoutMaterialsInput>
+}
+
 export type CourseCreateWithoutCreatorInput = {
   courseId?: string
   title: string
@@ -437,6 +463,7 @@ export type CourseCreateWithoutCreatorInput = {
   courseEndDate: Date | string
   category: string
   level: $Enums.Level
+  materials?: Prisma.MaterialCreateNestedManyWithoutCourseInput
 }
 
 export type CourseUncheckedCreateWithoutCreatorInput = {
@@ -447,6 +474,7 @@ export type CourseUncheckedCreateWithoutCreatorInput = {
   courseEndDate: Date | string
   category: string
   level: $Enums.Level
+  materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseInput
 }
 
 export type CourseCreateOrConnectWithoutCreatorInput = {
@@ -489,6 +517,66 @@ export type CourseScalarWhereInput = {
   level?: Prisma.EnumLevelFilter<"Course"> | $Enums.Level
 }
 
+export type CourseCreateWithoutMaterialsInput = {
+  courseId?: string
+  title: string
+  description: string
+  courseStartDate: Date | string
+  courseEndDate: Date | string
+  category: string
+  level: $Enums.Level
+  creator: Prisma.UserCreateNestedOneWithoutCoursesInput
+}
+
+export type CourseUncheckedCreateWithoutMaterialsInput = {
+  courseId?: string
+  title: string
+  description: string
+  courseStartDate: Date | string
+  courseEndDate: Date | string
+  userId: string
+  category: string
+  level: $Enums.Level
+}
+
+export type CourseCreateOrConnectWithoutMaterialsInput = {
+  where: Prisma.CourseWhereUniqueInput
+  create: Prisma.XOR<Prisma.CourseCreateWithoutMaterialsInput, Prisma.CourseUncheckedCreateWithoutMaterialsInput>
+}
+
+export type CourseUpsertWithoutMaterialsInput = {
+  update: Prisma.XOR<Prisma.CourseUpdateWithoutMaterialsInput, Prisma.CourseUncheckedUpdateWithoutMaterialsInput>
+  create: Prisma.XOR<Prisma.CourseCreateWithoutMaterialsInput, Prisma.CourseUncheckedCreateWithoutMaterialsInput>
+  where?: Prisma.CourseWhereInput
+}
+
+export type CourseUpdateToOneWithWhereWithoutMaterialsInput = {
+  where?: Prisma.CourseWhereInput
+  data: Prisma.XOR<Prisma.CourseUpdateWithoutMaterialsInput, Prisma.CourseUncheckedUpdateWithoutMaterialsInput>
+}
+
+export type CourseUpdateWithoutMaterialsInput = {
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
+  creator?: Prisma.UserUpdateOneRequiredWithoutCoursesNestedInput
+}
+
+export type CourseUncheckedUpdateWithoutMaterialsInput = {
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  courseStartDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
+}
+
 export type CourseCreateManyCreatorInput = {
   courseId?: string
   title: string
@@ -507,6 +595,7 @@ export type CourseUpdateWithoutCreatorInput = {
   courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
+  materials?: Prisma.MaterialUpdateManyWithoutCourseNestedInput
 }
 
 export type CourseUncheckedUpdateWithoutCreatorInput = {
@@ -517,6 +606,7 @@ export type CourseUncheckedUpdateWithoutCreatorInput = {
   courseEndDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   level?: Prisma.EnumLevelFieldUpdateOperationsInput | $Enums.Level
+  materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseNestedInput
 }
 
 export type CourseUncheckedUpdateManyWithoutCreatorInput = {
@@ -530,6 +620,35 @@ export type CourseUncheckedUpdateManyWithoutCreatorInput = {
 }
 
 
+/**
+ * Count Type CourseCountOutputType
+ */
+
+export type CourseCountOutputType = {
+  materials: number
+}
+
+export type CourseCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  materials?: boolean | CourseCountOutputTypeCountMaterialsArgs
+}
+
+/**
+ * CourseCountOutputType without action
+ */
+export type CourseCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CourseCountOutputType
+   */
+  select?: Prisma.CourseCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * CourseCountOutputType without action
+ */
+export type CourseCountOutputTypeCountMaterialsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MaterialWhereInput
+}
+
 
 export type CourseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   courseId?: boolean
@@ -541,6 +660,8 @@ export type CourseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   category?: boolean
   level?: boolean
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  materials?: boolean | Prisma.Course$materialsArgs<ExtArgs>
+  _count?: boolean | Prisma.CourseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["course"]>
 
 export type CourseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -581,6 +702,8 @@ export type CourseSelectScalar = {
 export type CourseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"courseId" | "title" | "description" | "courseStartDate" | "courseEndDate" | "userId" | "category" | "level", ExtArgs["result"]["course"]>
 export type CourseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  materials?: boolean | Prisma.Course$materialsArgs<ExtArgs>
+  _count?: boolean | Prisma.CourseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CourseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -593,6 +716,7 @@ export type $CoursePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name: "Course"
   objects: {
     creator: Prisma.$UserPayload<ExtArgs>
+    materials: Prisma.$MaterialPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     courseId: string
@@ -998,6 +1122,7 @@ readonly fields: CourseFieldRefs;
 export interface Prisma__CourseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  materials<T extends Prisma.Course$materialsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Course$materialsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1428,6 +1553,30 @@ export type CourseDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Courses to delete.
    */
   limit?: number
+}
+
+/**
+ * Course.materials
+ */
+export type Course$materialsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Material
+   */
+  select?: Prisma.MaterialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Material
+   */
+  omit?: Prisma.MaterialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialInclude<ExtArgs> | null
+  where?: Prisma.MaterialWhereInput
+  orderBy?: Prisma.MaterialOrderByWithRelationInput | Prisma.MaterialOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MaterialScalarFieldEnum | Prisma.MaterialScalarFieldEnum[]
 }
 
 /**

@@ -24,3 +24,12 @@ export const Level = {
 } as const
 
 export type Level = (typeof Level)[keyof typeof Level]
+
+
+export const MaterialType = {
+  Lecture_Slides: 'Lecture_Slides',
+  Video: 'Video',
+  Quiz: 'Quiz'
+} as const
+
+export type MaterialType = (typeof MaterialType)[keyof typeof MaterialType]
