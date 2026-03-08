@@ -4,6 +4,8 @@ FROM node:24-slim AS build
 # Set working directory inside container
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl libssl-dev
+
 # Copy only package files to leverage Docker cache
 COPY package*.json ./
 
@@ -21,6 +23,9 @@ RUN npm run build
 
 FROM node:24-slim
 WORKDIR /app
+
+# Install OpenSSL for production runtime
+RUN apt-get update -y && apt-get install -y openssl libssl-dev
 
 # Copy only package files from to leverage Docker cache
 COPY package*.json ./
