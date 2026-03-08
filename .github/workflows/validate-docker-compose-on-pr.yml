@@ -24,6 +24,9 @@ jobs:
       # 3️⃣ Build and validate dev environment
       - name: Validate Dev Docker Compose
         run: |
+          # Create .env file
+          echo "PORT=5000" > backend/.env
+
           docker compose -f backend/docker-compose.dev.yml build
           docker compose -f backend/docker-compose.dev.yml up -d
           # wait a few seconds for containers to start
@@ -36,6 +39,8 @@ jobs:
       # 4️⃣ Build and validate prod environment
       - name: Validate Prod Docker Compose
         run: |
+          # Create .env file
+          echo "PORT=5000" > backend/.env
           docker compose -f backend/docker-compose.prod.yml build
           docker compose -f backend/docker-compose.prod.yml up -d
           sleep 5
