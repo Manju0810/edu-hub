@@ -1,0 +1,45 @@
+name: Docker Compose Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Docker Buildx (for consistent builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3️⃣ Build and validate dev environment
+      - name: Validate Dev Docker Compose
+        run: |
+          docker-compose -f backend/docker-compose.dev.yml build
+          docker-compose -f backend/docker-compose.dev.yml up -d
+          # wait a few seconds for containers to start
+          sleep 5
+          docker ps
+          # optional: health check if your app exposes HTTP endpoint
+          docker-compose -f backend/docker-compose.dev.yml exec -T backend curl -f http://localhost:5000 || exit 1
+          docker-compose -f backend/docker-compose.dev.yml down
+
+      # 4️⃣ Build and validate prod environment
+      - name: Validate Prod Docker Compose
+        run: |
+          docker-compose -f backend/docker-compose.prod.yml build
+          docker-compose -f backend/docker-compose.prod.yml up -d
+          sleep 5
+          docker ps
+          docker-compose -f backend/docker-compose.prod.yml exec -T backend curl -f http://localhost:5000 || exit 1
+          docker-compose -f backend/docker-compose.prod.yml down
+          
