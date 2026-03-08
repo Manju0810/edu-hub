@@ -27,7 +27,7 @@ COPY backend/package*.json ./
 
 # Install dependencies
 # Use --omit=dev to install only production dependencies
-npm ci --omit=dev
+RUN npm ci --omit=dev
 
 # Copy compiled application
 COPY --from=build /app/dist ./dist
