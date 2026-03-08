@@ -35,9 +35,6 @@ COPY --from=build /app/dist ./dist
 # Copy only generated Prisma client from build node_modules
 COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
-# Generate Prisma client (required if schema changes)
-RUN npx prisma generate
-
 # Expose application port (matches Express configuration)
 # changed to 5000 per user requirement
 EXPOSE 5000
