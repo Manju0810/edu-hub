@@ -28,7 +28,7 @@ jobs:
           echo "PORT=5000" > backend/.env
 
           docker compose -f backend/docker-compose.dev.yml build
-          docker compose -f backend/docker-compose.dev.yml up -d
+          docker compose -f backend/docker-compose.dev.yml up
           # wait a few seconds for containers to start
           sleep 5
           docker ps
@@ -42,7 +42,7 @@ jobs:
           # Create .env file
           echo "PORT=5000" > backend/.env
           docker compose -f backend/docker-compose.prod.yml build
-          docker compose -f backend/docker-compose.prod.yml up -d
+          docker compose -f backend/docker-compose.prod.yml up
           sleep 5
           docker ps
           docker compose -f backend/docker-compose.prod.yml exec -T backend curl -f http://localhost:5000 || exit 1
