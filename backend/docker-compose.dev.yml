@@ -1,11 +1,8 @@
-version: '3.8'
-
 services:
   backend:
     extends:
       file: docker-compose.yml
       service: backend
-      image: edu-hub-backend:latest
     volumes:
       - ./:/app:cached
       - /app/node_modules
