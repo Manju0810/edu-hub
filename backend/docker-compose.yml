@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      container_name: edu-hub-backend-container
     working_dir: /app
     env_file:
       - .env

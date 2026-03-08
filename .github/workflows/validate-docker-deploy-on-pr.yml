@@ -46,7 +46,7 @@ jobs:
 
       - name: Show Docker image size in bytes
         run: |
-          IMAGE_NAME=edu-hub-backend:prod
+          IMAGE_NAME=edu-hub-backend
           IMAGE_TAG=latest
           SIZE_BYTES=$(docker inspect ${IMAGE_NAME}:${IMAGE_TAG} --format='{{.Size}}')
           SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
