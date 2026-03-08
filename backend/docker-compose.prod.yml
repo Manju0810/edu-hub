@@ -5,6 +5,7 @@ services:
     extends:
       file: docker-compose.yml
       service: backend
+      image: edu-hub-backend:prod
     environment:
       - NODE_ENV=production
     command: npm start

@@ -5,6 +5,7 @@ services:
     extends:
       file: docker-compose.yml
       service: backend
+      image: edu-hub-backend:dev
     volumes:
       - ./:/app:cached
       - /app/node_modules
