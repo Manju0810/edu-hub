@@ -1,7 +1,7 @@
 import { CookieOptions, Request, Response } from "express";
 import { prisma } from "../prisma";
 import bcrypt from "bcrypt";
-import { Role } from "../generated/prisma/enums";
+import { Role } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { AuthPayload } from "../middleware/auth";

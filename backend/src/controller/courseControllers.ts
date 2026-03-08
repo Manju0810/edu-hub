@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
-import { Level, Role } from "../generated/prisma/enums";
+import { Level, Role } from "@prisma/client";
 import dotenv from "dotenv";
 import { AuthPayload } from "../middleware/auth";
 

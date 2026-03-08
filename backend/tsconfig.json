@@ -1,47 +1,34 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
+    /* Output */
+    "outDir": "./dist",
     "rootDir": "./src",
-     "outDir": "./dist",
 
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    /* Module system (best for modern Node) */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
 
-    // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    /* Node environment */
+    "lib": ["ES2022"],
+    "types": ["node"],
 
-    // Stricter Typechecking Options
+    /* Interop */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    /* Type safety */
+    "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
+    /* Build output */
+    "sourceMap": false,
+    "declaration": false,
 
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
-    //"verbatimModuleSyntax": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
-
+    /* Performance */
+    "skipLibCheck": true
   },
-  "exclude": ["eslint.config.mts", ".prisma", "prisma.config.ts",  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
