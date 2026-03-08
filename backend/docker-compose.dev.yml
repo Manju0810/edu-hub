@@ -5,7 +5,4 @@ services:
     extends:
       file: docker-compose.yml
       service: backend
-    volumes:
-      - ./:/app:cached
-      - /app/node_modules
     command: npm run dev
