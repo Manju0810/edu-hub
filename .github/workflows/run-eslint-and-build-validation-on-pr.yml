@@ -26,9 +26,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
-      # 3️⃣ Install dependencies
-      - name: Install dependencies
-        run: npm ci
+      # 3️⃣ Install dependencies and generate Prisma client
+      - name: Install dependencies and generate Prisma client
+        run: |
+          npm ci
+          npm run prisma:generate
 
       # 4️⃣ Run ESLint
       - name: Run ESLint
