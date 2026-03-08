@@ -23,7 +23,7 @@ FROM node:24-slim
 WORKDIR /app
 
 # Copy only package files from to leverage Docker cache
-COPY/package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 # Use --omit=dev to install only production dependencies
