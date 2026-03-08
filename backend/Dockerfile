@@ -33,7 +33,7 @@ RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 
 # Copy only generated Prisma client from build node_modules
-COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=build /app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 # Expose application port (matches Express configuration)
 # changed to 5000 per user requirement
