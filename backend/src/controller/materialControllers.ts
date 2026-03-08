@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
-import { MaterialType, Role } from "../generated/prisma/enums";
+import { MaterialType, Role } from "@prisma/client";
 import { CustomRequest } from "./courseControllers"; // Assuming it's exported from courseControllers
 
 interface Material {
