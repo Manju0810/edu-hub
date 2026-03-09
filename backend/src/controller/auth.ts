@@ -43,12 +43,6 @@ export const register = async (req: Request, res: Response) => {
     req.body;
 
   try {
-    if (!email || !password || !role || !username || !mobileNumber) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Mandatory fields are missing' });
-    }
-
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
