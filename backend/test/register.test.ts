@@ -35,6 +35,7 @@ describe('Register Endpoint Tests', () => {
       mobileNumber: '1234567890',
       email: 'test@example.com',
       password: 'Password123',
+      profileImage: '',
       role: 'student',
     });
 
