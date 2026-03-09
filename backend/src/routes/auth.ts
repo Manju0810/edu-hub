@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { addCourse, deleteCourse, getAllCourses,getCourseByCourseId, getCoursesByUserId, updateCourse } from "../controller/courseControllers";
-import { login, register, getAllStudents  } from "../controller/userControllers";
-import { addMaterial, getMaterialByMaterialId, updateMaterialByMaterialId, deleteMaterialByMaterialId, getMaterialBycourseId } from "../controller/materialControllers";
+import { addCourse, deleteCourse, getAllCourses,getCourseByCourseId, getCoursesByUserId, updateCourse } from "../controller/course";
+import { login, register, getAllStudents  } from "../controller/auth";
+import { addMaterial, getMaterialByMaterialId, updateMaterialByMaterialId, deleteMaterialByMaterialId, getMaterialBycourseId } from "../controller/material";
 import { verifyToken } from "../middleware/auth";
 import { validateBody } from "../middleware/validation";
 import { RegisterSchema } from "../validation/schemas";
