@@ -9,7 +9,7 @@ export const RegisterSchema = z.object({
     .string()
     .min(10, 'Mobile number must be at least 10 digits')
     .max(15, 'Mobile number must be at most 15 digits'),
-  profileImage: z.string().optional(),
+  profileImage: z.string('Profile image URL must be a string'),
   email: z.string().email('Invalid email address'),
   password: z
     .string()
