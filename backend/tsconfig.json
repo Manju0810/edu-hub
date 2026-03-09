@@ -11,7 +11,7 @@
 
     /* Node environment */
     "lib": ["ES2022"],
-    "types": ["node"],
+  "types": ["node", "jest"],
 
     /* Interop */
     "esModuleInterop": true,
@@ -29,6 +29,6 @@
     /* Performance */
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/test/singleton.ts", "src/test"],
   "exclude": ["node_modules", "dist"]
 }

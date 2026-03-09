@@ -3,10 +3,12 @@ import { addCourse, deleteCourse, getAllCourses,getCourseByCourseId, getCoursesB
 import { login, register, getAllStudents  } from "../controller/userControllers";
 import { addMaterial, getMaterialByMaterialId, updateMaterialByMaterialId, deleteMaterialByMaterialId, getMaterialBycourseId } from "../controller/materialControllers";
 import { verifyToken } from "../middleware/auth";
+import { validateBody } from "../middleware/validation";
+import { RegisterSchema } from "../validation/schemas";
 
 const router = Router()
 
-router.post("/register", register)
+router.post("/register", validateBody(RegisterSchema), register)
 router.post("/login", login)
 router.get("/user/getAllStudents", verifyToken, getAllStudents)
 router.post("/course/addCourse", verifyToken, addCourse)
