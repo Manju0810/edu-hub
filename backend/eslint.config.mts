@@ -17,7 +17,10 @@ export default defineConfig([
   {
     files: ['**/*.{ts,mts,cts}'],
     languageOptions: {
-      globals: globals.node,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
     plugins: {
       prettier: prettierPlugin,

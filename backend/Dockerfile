@@ -50,5 +50,4 @@ EXPOSE 5000
 # Startup script
 COPY scripts/start.sh /start.sh
 RUN chmod +x /start.sh
-
 CMD ["/start.sh"]
