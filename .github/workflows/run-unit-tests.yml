@@ -34,4 +34,7 @@ jobs:
 
       # 4️⃣ Run Unit Tests
       - name: Run Unit Tests
-        run: npm test
+        run: |
+          # Create .env file
+          echo "JWT_SECRET=test_secret" > .env
+          npm test
