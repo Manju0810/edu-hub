@@ -1,8 +1,10 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import authPayload from './routes/auth'
 import cookieParser from 'cookie-parser'
+import authRoutes from './routes/auth'
+import courseRoutes from './routes/course'
+import materialRoutes from './routes/material'
 
 dotenv.config()
 
@@ -19,7 +21,9 @@ app.get('/api/ping', (req, res) => {
     res.json({ message: 'server is running' })
 })
 
-app.use("/api/auth", authPayload)
+app.use("/api/auth", authRoutes)
+app.use("/api/course", courseRoutes)
+app.use("/api/material", materialRoutes)
 
 
 app.listen(process.env.PORT, () => {

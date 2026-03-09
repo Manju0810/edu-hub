@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
 import { MaterialType, Role } from "@prisma/client";
-import { CustomRequest } from "./courseControllers"; // Assuming it's exported from courseControllers
+import { CustomRequest } from "./course"; // Assuming it's exported from courseControllers
 
 interface Material {
   materialId: string;
@@ -18,12 +18,10 @@ export const addMaterial = async (
   res: Response,
 ) => {
   const { courseId, title, description, URL, contentType } = req.body;
-    const role = req.user?.role
+  const role = req.user?.role;
   try {
     if (role === Role.student) {
-        return res
-        .status(400)
-        .json({ success: false, message: "Access denied" });
+      return res.status(400).json({ success: false, message: "Access denied" });
     }
     if (!courseId || !title || !description || !contentType) {
       return res
@@ -67,7 +65,9 @@ export const addMaterial = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ success: false, message: `Internal server error: ${error}` });
+    return res
+      .status(400)
+      .json({ success: false, message: `Internal server error: ${error}` });
   }
 };
 
@@ -77,12 +77,10 @@ export const getMaterialByMaterialId = async (
   res: Response,
 ) => {
   const { materialId } = req.params;
-    const role = req.user?.role
+  const role = req.user?.role;
   try {
     if (role === Role.student) {
-        return res
-        .status(400)
-        .json({ success: false, message: "Access denied" });
+      return res.status(400).json({ success: false, message: "Access denied" });
     }
     const material = await prisma.material.findUnique({
       where: { materialId },
@@ -109,7 +107,9 @@ export const getMaterialByMaterialId = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ success: false, message: `Internal server error: ${error}` });
+    return res
+      .status(400)
+      .json({ success: false, message: `Internal server error: ${error}` });
   }
 };
 
@@ -120,12 +120,10 @@ export const updateMaterialByMaterialId = async (
 ) => {
   const { materialId } = req.params;
   const { title, description, URL, contentType } = req.body;
-    const role = req.user?.role
+  const role = req.user?.role;
   try {
     if (role === Role.student) {
-        return res
-        .status(400)
-        .json({ success: false, message: "Access denied" });
+      return res.status(400).json({ success: false, message: "Access denied" });
     }
     const existingMaterial = await prisma.material.findUnique({
       where: { materialId },
@@ -163,7 +161,9 @@ export const updateMaterialByMaterialId = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ success: false, message: `Internal server error: ${error}` });
+    return res
+      .status(400)
+      .json({ success: false, message: `Internal server error: ${error}` });
   }
 };
 
@@ -173,12 +173,10 @@ export const deleteMaterialByMaterialId = async (
   res: Response,
 ) => {
   const { materialId } = req.params;
-    const role = req.user?.role
+  const role = req.user?.role;
   try {
     if (role === Role.student) {
-        return res
-        .status(400)
-        .json({ success: false, message: "Access denied" });
+      return res.status(400).json({ success: false, message: "Access denied" });
     }
     const existingMaterial = await prisma.material.findUnique({
       where: { materialId },
@@ -200,7 +198,9 @@ export const deleteMaterialByMaterialId = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ success: false, message: `Internal server error: ${error}` });
+    return res
+      .status(400)
+      .json({ success: false, message: `Internal server error: ${error}` });
   }
 };
 
@@ -237,7 +237,10 @@ export const getMaterialBycourseId = async (
     if (materials.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No materials found for this course" });
+        .json({
+          success: false,
+          message: "No materials found for this course",
+        });
     }
 
     return res.status(200).json({
@@ -246,6 +249,8 @@ export const getMaterialBycourseId = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ success: false, message: `Internal server error: ${error}` });
+    return res
+      .status(400)
+      .json({ success: false, message: `Internal server error: ${error}` });
   }
 };
