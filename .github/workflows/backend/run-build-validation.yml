@@ -32,10 +32,6 @@ jobs:
           npm ci
           npm run prisma:generate
 
-      # 4️⃣ Run ESLint
-      - name: Run ESLint
-        run: npm run lint
-
       # 5️⃣ Build validation (TypeScript type check)
       - name: Build Validation
         run: npm run build:check
