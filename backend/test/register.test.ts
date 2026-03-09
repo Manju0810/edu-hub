@@ -26,7 +26,7 @@ describe('Register Endpoint Tests', () => {
       mobileNumber: '1234567890',
       role: 'student',
       userId: '',
-      profileImage: null,
+      profileImage: '',
       password: '',
       createdAt: new Date(),
     });
