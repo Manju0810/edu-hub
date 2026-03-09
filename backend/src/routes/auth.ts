@@ -6,15 +6,15 @@ import {
   getCourseByCourseId,
   getCoursesByUserId,
   updateCourse,
-} from '../controller/courseControllers';
-import { login, register, getAllStudents } from '../controller/userControllers';
+} from '../controller/course';
+import { login, register, getAllStudents } from '../controller/auth';
 import {
   addMaterial,
   getMaterialByMaterialId,
   updateMaterialByMaterialId,
   deleteMaterialByMaterialId,
   getMaterialBycourseId,
-} from '../controller/materialControllers';
+} from '../controller/material';
 import { verifyToken } from '../middleware/auth';
 
 const router = Router();
