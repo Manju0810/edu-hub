@@ -11,7 +11,7 @@
 
     /* Node environment */
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "jest"],
 
     /* Interop */
     "esModuleInterop": true,
@@ -30,5 +30,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "test"]
 }
