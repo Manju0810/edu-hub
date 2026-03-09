@@ -29,6 +29,6 @@
     /* Performance */
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "src/test/singleton.ts", "src/test"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
 }

@@ -1,6 +1,22 @@
 import request from 'supertest';
-import { app } from '../app';
-import { prismaMock } from './singleton';
+import { PrismaClient } from '@prisma/client';
+import { mockDeep, mockReset, DeepMockProxy } from 'jest-mock-extended';
+import { beforeEach, jest } from '@jest/globals';
+import { describe, test, expect } from '@jest/globals';
+
+import { app } from '../src/app';
+import { prisma } from '../src/prisma';
+
+jest.mock('../src/prisma', () => ({
+  __esModule: true,
+  prisma: mockDeep<PrismaClient>(),
+}));
+
+beforeEach(() => {
+  mockReset(prismaMock);
+});
+
+const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 describe('Register Endpoint Tests', () => {
   test('should register user with valid data', async () => {
