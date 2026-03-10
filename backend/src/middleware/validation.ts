@@ -17,7 +17,6 @@ export const validateBody = (schema: ZodSchema) => {
         })),
       });
     }
-
     req.body = parsed.data;
     return next();
   };

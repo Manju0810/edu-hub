@@ -1,10 +1,10 @@
-import { CookieOptions, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { AuthPayload } from '../middleware/auth';
+import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
 
 dotenv.config();
 
@@ -16,7 +16,6 @@ interface Query {
   search?: string;
 }
 
-//Request<Params, ResBody, ReqBody, ReqQuery> //TQuery means  if no query is provided then it will be defaults to {}
 export interface CustomRequest<
   TParams = object,
   TBody = object,
@@ -24,19 +23,6 @@ export interface CustomRequest<
 > extends Request<TParams, object, TBody, TQuery> {
   user?: AuthPayload;
 }
-
-const jwt_secret = process.env.JWT_SECRET!;
-const saltRounds = 12;
-const cookieOptions: CookieOptions = {
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: true,
-  maxAge: 24 * 60 * 60 * 1000,
-};
-
-const generateToken = (payload: string | object | Buffer<ArrayBufferLike>) => {
-  return jwt.sign(payload, jwt_secret, { expiresIn: '1h' });
-};
 
 export const register = async (req: Request, res: Response) => {
   const { username, mobileNumber, profileImage, email, password, role } =
@@ -79,7 +65,7 @@ export const register = async (req: Request, res: Response) => {
     const token = generateToken(payload);
     res.cookie('token', token, cookieOptions);
     return res
-      .status(200)
+      .status(201)
       .json({ success: true, message: 'User registered successfully', user });
   } catch (error) {
     console.error(error);
@@ -94,12 +80,6 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
   try {
-    if (!username || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Mandatory fields are missing' });
-    }
-
     const user = await prisma.user.findUnique({ where: { username } });
     if (!user) {
       return res.status(400).json({ success: false, message: 'No user found' });
