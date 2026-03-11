@@ -24,13 +24,13 @@ export const LoginSchema = z.object({
   password: z.string('Password is required').nonempty(),
 });
 
-// Register
+export const AddEnrollSchema = z.object({
+  userId: z.string('User ID is required').nonempty(),
+  courseId: z.string('Course ID is required').nonempty(),
+});
 
-// Test Cases
-
-// 1. should register a new user when valid data is provided
-// 2. should return error when any required data is not provided
-// 3. should return error when password is not meeting requirements
-// 4. should return error when invalid is provided
-// 5. should return error when mobile number is not valid
-// 5. should return error when role is invalid
+export const UpdateEnrollSchema = z.object({
+  status: z.enum(['Pending', 'Accepted', 'Rejected'], {
+    error: "Status must be either 'Pending', 'Accepted', or 'Rejected'",
+  }),
+});

@@ -1,18 +1,15 @@
-import type { MaterialType } from '@prisma/client';
 import { Role } from '@prisma/client';
 import type { Request, Response } from 'express';
 
 import { prisma } from '../prisma';
+import type { AuthPayload, Material } from '../types/types';
 
-import type { CustomRequest } from './course'; // Assuming it's exported from courseControllers
-
-interface Material {
-  materialId: string;
-  courseId: string;
-  title: string;
-  description: string;
-  URL?: string;
-  contentType: MaterialType;
+interface CustomRequest<
+  TParams = object,
+  TBody = object,
+  TQuery = object,
+> extends Request<TParams, object, TBody, TQuery> {
+  user?: AuthPayload;
 }
 
 // Add Material

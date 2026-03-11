@@ -4,6 +4,7 @@ import express from 'express';
 
 import authRoutes from './routes/auth';
 import courseRoutes from './routes/course';
+import enrollmentRoutes from './routes/enrollment';
 import materialRoutes from './routes/material';
 
 export const app = express();
@@ -24,3 +25,4 @@ app.get('/api/ping', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/course', courseRoutes);
 app.use('/api/material', materialRoutes);
+app.use('/api/enroll', enrollmentRoutes);

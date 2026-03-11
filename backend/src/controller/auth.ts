@@ -2,22 +2,11 @@ import { Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
-
-import type { AuthPayload } from '../middleware/auth';
 import { prisma } from '../prisma';
 import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
+import type { AuthPayload, Query } from '../types/types';
 
-dotenv.config();
-
-interface Query {
-  page?: string;
-  limit?: string;
-  sortBy?: 'username' | 'email';
-  order?: 'asc' | 'desc';
-  search?: string;
-}
-
-export interface CustomRequest<
+interface CustomRequest<
   TParams = object,
   TBody = object,
   TQuery = object,
@@ -25,6 +14,7 @@ export interface CustomRequest<
   user?: AuthPayload;
 }
 
+dotenv.config();
 export const register = async (req: Request, res: Response) => {
   const { username, mobileNumber, profileImage, email, password, role } =
     req.body;
