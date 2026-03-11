@@ -6,6 +6,7 @@
 - Name test files using the pattern: `<feature>.test.ts`
 - Mirror the structure of the src directory when organizing tests (optional but recommended for large projects)
 - Current project uses: `test/auth.test.ts` for testing auth routes
+  git push --set-upstream origin feature/add-development-and-unit-tests-rules"
 
 ## 2. Jest Configuration
 
@@ -96,9 +97,7 @@ Use `supertest` to test Express routes:
 ```typescript
 import request from 'supertest';
 
-const response = await request(app)
-  .post('/api/auth/register')
-  .send(payload);
+const response = await request(app).post('/api/auth/register').send(payload);
 ```
 
 ### 5.1 Testing with Authentication
@@ -212,7 +211,7 @@ expect(response.body.user).toEqual({
 
 ## 8. Cookie Validation Helper
 
-Use the provided helper for validating cookie responses:
+Use the provided helper for validating cookie responses as required:
 
 ```typescript
 const validateCookie = (
@@ -407,6 +406,7 @@ test('should search users by username or email', async () => {
 ## 15. Examples Reference
 
 See `backend/test/auth.test.ts` for comprehensive examples of:
+
 - Register endpoint tests (validation, happy path, errors)
 - Login endpoint tests (password hashing, auth failures)
 - Protected route tests (JWT validation, role-based access)

@@ -247,6 +247,7 @@ export const getMaterialByCourseId = async (
     return res.status(200).json({
       success: true,
       data: materials,
+      message: 'Materials fetched successfully',
     });
   } catch (error) {
     console.error(error);

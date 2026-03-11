@@ -106,6 +106,7 @@ All API responses follow a consistent JSON structure:
 - Validation error format: `{ field: string, message: string }[]`
 
 Example schema:
+
 ```typescript
 export const RegisterSchema = z.object({
   username: z.string('Username is required').max(50, 'Max 50 chars'),
@@ -118,20 +119,24 @@ export const RegisterSchema = z.object({
 #### 4.5 Authentication & Authorization
 
 **Authentication**: JWT tokens stored in **HttpOnly, Secure cookies**
+
 - Cookie name: `token`
 - Max-Age: 86400 seconds (1 day)
 - SameSite: Lax
 - Path: /
 
 **Authorization**: Role-based access control using Prisma `Role` enum
+
 - `Role.student` - regular users
 - `Role.educator` - admin/teacher privileges
 
 **Middleware**:
+
 - `verifyToken`: Extracts token from cookie, validates JWT, attaches payload to `req.user`
 - Protected routes: `router.get('/endpoint', verifyToken, handler)`
 
 **Utils**: `src/utils/auth.ts`
+
 - `generateToken(payload)` - creates JWT with secret from env
 - `cookieOptions` - standard cookie configuration
 - `saltRounds` - bcrypt cost factor (12)
@@ -145,6 +150,7 @@ export const RegisterSchema = z.object({
 - Role enum: `import { Role } from '@prisma/client'`
 
 Controller pattern:
+
 ```typescript
 // Find with error handling
 const user = await prisma.user.findUnique({ where: { email } });
@@ -164,13 +170,17 @@ const user = await prisma.user.create({
 Controllers can extend Request with custom properties:
 
 ```typescript
-export interface CustomRequest<TParams = object, TBody = object, TQuery = object>
-  extends Request<TParams, object, TBody, TQuery> {
-  user?: AuthPayload;  // populated by verifyToken middleware
+export interface CustomRequest<
+  TParams = object,
+  TBody = object,
+  TQuery = object,
+> extends Request<TParams, object, TBody, TQuery> {
+  user?: AuthPayload; // populated by verifyToken middleware
 }
 ```
 
 Use in controllers with query parameters:
+
 ```typescript
 export const handler = async (
   req: CustomRequest<object, object, Query>,
@@ -192,6 +202,7 @@ export const handler = async (
 Refer to `backend/docs/ai/UNIT_DEVELOPMENT_RULES.md` for comprehensive testing guidelines.
 
 Key patterns:
+
 - Test files: `backend/test/<feature>.test.ts`
 - Use `@jest/globals` imports
 - Deep mock PrismaClient with `jest-mock-extended`
@@ -217,6 +228,7 @@ Key patterns:
 #### 4.12 Pagination, Sorting, Search
 
 Standard query parameters for list endpoints:
+
 - `page` (default: 1)
 - `limit` (default: 10)
 - `sortBy` (`username` | `email` | `createdAt`)
@@ -224,8 +236,15 @@ Standard query parameters for list endpoints:
 - `search` (string for case-insensitive OR search on multiple fields)
 
 Implementation pattern:
+
 ```typescript
-const { page = 1, limit = 10, sortBy = 'username', order = 'asc', search } = req.query;
+const {
+  page = 1,
+  limit = 10,
+  sortBy = 'username',
+  order = 'asc',
+  search,
+} = req.query;
 const skip = Number(limit) * Number(page) - Number(limit);
 const take = Number(limit);
 

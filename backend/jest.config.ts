@@ -8,9 +8,17 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   testMatch: ['**/?(*.)+(spec|test).ts'],
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.ts'],
+  collectCoverageFrom: ['src/**/*.ts', '!src/index.ts', '!src/prisma.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'html', 'lcov'],
+  coverageThreshold: {
+    global: {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95,
+    },
+  },
 };
 
 export default config;
