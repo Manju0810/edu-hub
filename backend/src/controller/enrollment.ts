@@ -1,8 +1,9 @@
 import type { EnrollmentStatus } from '@prisma/client';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
+
 import { prisma } from '../prisma';
-import { AuthPayload, Query } from '../types/types';
+import type { AuthPayload, Query } from '../types/types';
 
 interface CustomRequest<
   TParams = object,

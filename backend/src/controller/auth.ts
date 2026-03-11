@@ -2,9 +2,10 @@ import { Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
+
 import { prisma } from '../prisma';
-import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
 import type { AuthPayload, Query } from '../types/types';
+import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
 
 interface CustomRequest<
   TParams = object,

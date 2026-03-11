@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthPayload } from '../types/types';
+
+import type { AuthPayload } from '../types/types';
 
 dotenv.config();
 
