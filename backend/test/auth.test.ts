@@ -1,43 +1,30 @@
+import { beforeEach, describe, jest, test, expect } from '@jest/globals';
+import type { PrismaClient } from '@prisma/client';
+import { Role } from '@prisma/client';
+import bcrypt from 'bcrypt';
+import type { DeepMockProxy } from 'jest-mock-extended';
+import { mockDeep, mockReset } from 'jest-mock-extended';
+import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { PrismaClient, Role } from '@prisma/client';
-import { mockDeep, mockReset, DeepMockProxy } from 'jest-mock-extended';
-import { beforeEach, jest } from '@jest/globals';
-import { describe, test, expect } from '@jest/globals';
+
 import { app } from '../src/app';
 import { prisma } from '../src/prisma';
-import { generateToken } from '../src/utils/auth';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 
-jest.mock('../src/utils/auth');
-
-const mockGenerateToken = jest.mocked(generateToken);
+jest.mock('jsonwebtoken', () => ({
+  __esModule: true,
+  default: {
+    verify: jest.fn(),
+    sign: jest.fn(),
+  },
+}));
 
 jest.mock('../src/prisma', () => ({
   __esModule: true,
   prisma: mockDeep<PrismaClient>(),
 }));
 
-interface AuthPayload {
-  userId: string;
-  email: string;
-  role: Role;
-}
-
-jest.mock('jsonwebtoken', () => ({
-  __esModule: true,
-  default: {
-    verify: jest.fn(
-      (): AuthPayload => ({
-        userId: 'mock-user',
-        email: 'test@test.com',
-        role: Role.educator,
-      })
-    ),
-  },
-}));
-
 const mockJwt = jest.mocked(jwt);
+const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 beforeEach(() => {
   mockReset(prismaMock);
@@ -65,42 +52,41 @@ const validateCookie = (
   expect(parts.Path).toBe('/');
 };
 
-const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
-
 describe('Register Endpoint Tests', () => {
-  const mockValidReqisterPayload = {
-    username: 'testuser',
+  const mockValidRegisterPayload = {
+    username: 'user',
     mobileNumber: '1234567890',
     email: 'test@example.com',
     password: 'Password123',
     profileImage: 'mock-profile-image-data',
     role: 'student' as Role,
   };
+
   test('should register user with valid data', async () => {
-    const mockPrismaCreateReponse = {
+    const mockPrismaCreateResponse = {
       userId: 'mock-userid',
-      username: mockValidReqisterPayload.username,
-      email: mockValidReqisterPayload.email,
-      role: mockValidReqisterPayload.role,
-      mobileNumber: mockValidReqisterPayload.mobileNumber,
-      profileImage: mockValidReqisterPayload.profileImage,
+      username: mockValidRegisterPayload.username,
+      email: mockValidRegisterPayload.email,
+      role: mockValidRegisterPayload.role,
+      mobileNumber: mockValidRegisterPayload.mobileNumber,
+      profileImage: mockValidRegisterPayload.profileImage,
       password: '',
       createdAt: new Date(),
     };
 
-    prismaMock.user.create.mockResolvedValue(mockPrismaCreateReponse);
-    mockGenerateToken.mockReturnValue('fake-token');
+    prismaMock.user.create.mockResolvedValue(mockPrismaCreateResponse);
+    mockJwt.sign.mockReturnValue('fake-token' as never);
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send(mockValidReqisterPayload);
+      .send(mockValidRegisterPayload);
 
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('User registered successfully');
     expect(response.body.user).toEqual({
-      ...mockPrismaCreateReponse,
-      createdAt: mockPrismaCreateReponse.createdAt.toISOString(),
+      ...mockPrismaCreateResponse,
+      createdAt: mockPrismaCreateResponse.createdAt.toISOString(),
     });
     const cookie = response.headers['set-cookie']?.[0] ?? '';
     validateCookie(cookie, 'token', 'fake-token');
@@ -108,11 +94,11 @@ describe('Register Endpoint Tests', () => {
 
   test('should return error when prisma throws error', async () => {
     prismaMock.user.create.mockRejectedValue('Prisma Error');
-    mockGenerateToken.mockReturnValue('fake-token');
+    mockJwt.sign.mockReturnValue('fake-token' as never);
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send(mockValidReqisterPayload);
+      .send(mockValidRegisterPayload);
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -127,11 +113,11 @@ describe('Register Endpoint Tests', () => {
   test('should return error when user already exists', async () => {
     const mockPrismaResponse = {
       userId: 'mock-userid',
-      username: mockValidReqisterPayload.username,
-      email: mockValidReqisterPayload.email,
-      role: mockValidReqisterPayload.role,
-      mobileNumber: mockValidReqisterPayload.mobileNumber,
-      profileImage: mockValidReqisterPayload.profileImage,
+      username: mockValidRegisterPayload.username,
+      email: mockValidRegisterPayload.email,
+      role: mockValidRegisterPayload.role,
+      mobileNumber: mockValidRegisterPayload.mobileNumber,
+      profileImage: mockValidRegisterPayload.profileImage,
       password: '',
       createdAt: new Date(),
     };
@@ -139,7 +125,7 @@ describe('Register Endpoint Tests', () => {
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send(mockValidReqisterPayload);
+      .send(mockValidRegisterPayload);
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -182,7 +168,7 @@ describe('Register Endpoint Tests', () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
-        ...mockValidReqisterPayload,
+        ...mockValidRegisterPayload,
         email: 'invalid-email',
       });
 
@@ -200,7 +186,7 @@ describe('Register Endpoint Tests', () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
-        ...mockValidReqisterPayload,
+        ...mockValidRegisterPayload,
         password: '123',
       });
 
@@ -218,7 +204,7 @@ describe('Register Endpoint Tests', () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
-        ...mockValidReqisterPayload,
+        ...mockValidRegisterPayload,
         password:
           'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       });
@@ -237,7 +223,7 @@ describe('Register Endpoint Tests', () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
-        ...mockValidReqisterPayload,
+        ...mockValidRegisterPayload,
         role: 'manager',
       });
 
@@ -254,7 +240,7 @@ describe('Register Endpoint Tests', () => {
 
 describe('Login Endpoint Tests', () => {
   const mockValidLoginPayload = {
-    username: 'testuser',
+    username: 'user',
     password: 'Password123',
   };
   test('Should login user with valid data', async () => {
@@ -269,7 +255,8 @@ describe('Login Endpoint Tests', () => {
       password: bcrypt.hashSync(mockValidLoginPayload.password, 12),
     };
     prismaMock.user.findUnique.mockResolvedValue(mockPrismaLoginResponse);
-    mockGenerateToken.mockReturnValue('fake-token');
+    mockJwt.sign.mockReturnValue('fake-token' as never);
+
     const response = await request(app)
       .post('/api/auth/login')
       .send(mockValidLoginPayload);
@@ -287,7 +274,7 @@ describe('Login Endpoint Tests', () => {
 
   test('should return error when prisma throws error', async () => {
     prismaMock.user.findUnique.mockRejectedValue('Prisma Error');
-    mockGenerateToken.mockReturnValue('fake-token');
+    mockJwt.sign.mockReturnValue('fake-token' as never);
 
     const response = await request(app)
       .post('/api/auth/login')
@@ -360,10 +347,10 @@ describe('Login Endpoint Tests', () => {
 
 describe('Get All Students Endpoint Tests', () => {
   test('should fetch all students', async () => {
-    const mockPrismaCreateReponse = [
+    const mockPrismaCreateResponse = [
       {
         userId: 'mock-userid1',
-        username: 'testuser1',
+        username: 'user1',
         email: 'test@example.com',
         role: 'student' as Role,
         mobileNumber: '1234567890',
@@ -373,7 +360,7 @@ describe('Get All Students Endpoint Tests', () => {
       },
       {
         userId: 'mock-userid2',
-        username: 'testuser2',
+        username: 'user2',
         email: 'test2@example.com',
         role: 'student' as Role,
         mobileNumber: '1234567890',
@@ -383,7 +370,7 @@ describe('Get All Students Endpoint Tests', () => {
       },
     ];
 
-    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateReponse);
+    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse);
 
     mockJwt.verify.mockReturnValue({
       userId: 'mock-user',
@@ -398,7 +385,7 @@ describe('Get All Students Endpoint Tests', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('Students fetched successfully');
     expect(response.body.students).toEqual(
-      mockPrismaCreateReponse.map((object) => {
+      mockPrismaCreateResponse.map((object) => {
         return {
           ...object,
           createdAt: object.createdAt.toISOString(),
@@ -447,10 +434,10 @@ describe('Get All Students Endpoint Tests', () => {
   });
 
   test('should search students by username or email', async () => {
-    const mockPrismaCreateReponse = [
+    const mockPrismaCreateResponse = [
       {
         userId: 'mock-userid1',
-        username: 'testuser1',
+        username: 'user1',
         email: 't@example.com',
         role: 'student' as Role,
         mobileNumber: '1234567890',
@@ -470,7 +457,7 @@ describe('Get All Students Endpoint Tests', () => {
       },
     ];
 
-    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateReponse);
+    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse);
 
     mockJwt.verify.mockReturnValue({
       userId: 'mock-user',
@@ -487,7 +474,7 @@ describe('Get All Students Endpoint Tests', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('Students fetched successfully');
     expect(response.body.students).toEqual(
-      mockPrismaCreateReponse.map((object) => {
+      mockPrismaCreateResponse.map((object) => {
         return {
           ...object,
           createdAt: object.createdAt.toISOString(),
@@ -497,10 +484,10 @@ describe('Get All Students Endpoint Tests', () => {
   });
 
   test('should sort students by username or email', async () => {
-    const mockPrismaCreateReponse = [
+    const mockPrismaCreateResponse = [
       {
         userId: 'mock-userid1',
-        username: 'atestuser1',
+        username: 'user1',
         email: 'test@example.com',
         role: 'student' as Role,
         mobileNumber: '1234567890',
@@ -510,7 +497,7 @@ describe('Get All Students Endpoint Tests', () => {
       },
       {
         userId: 'mock-userid2',
-        username: 'btestuser2',
+        username: 'user2',
         email: 'test2@example.com',
         role: 'student' as Role,
         mobileNumber: '1234567890',
@@ -520,7 +507,7 @@ describe('Get All Students Endpoint Tests', () => {
       },
     ];
 
-    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateReponse);
+    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse);
 
     mockJwt.verify.mockReturnValue({
       userId: 'mock-user',
@@ -535,7 +522,7 @@ describe('Get All Students Endpoint Tests', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('Students fetched successfully');
     expect(response.body.students).toEqual(
-      mockPrismaCreateReponse.map((object) => {
+      mockPrismaCreateResponse.map((object) => {
         return {
           ...object,
           createdAt: object.createdAt.toISOString(),

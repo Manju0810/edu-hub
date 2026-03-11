@@ -1,10 +1,11 @@
 import { Router } from 'express';
+
 import {
   addMaterial,
   getMaterialByMaterialId,
   updateMaterialByMaterialId,
   deleteMaterialByMaterialId,
-  getMaterialBycourseId,
+  getMaterialByCourseId,
 } from '../controller/material';
 import { verifyToken } from '../middleware/auth';
 
@@ -29,7 +30,7 @@ router.delete(
 router.get(
   '/getMaterialByCourseId/:courseId',
   verifyToken,
-  getMaterialBycourseId
+  getMaterialByCourseId
 );
 
 export default router;

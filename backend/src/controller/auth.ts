@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
-import { prisma } from '../prisma';
-import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
+import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { AuthPayload } from '../middleware/auth';
+import type { Request, Response } from 'express';
+
+import type { AuthPayload } from '../middleware/auth';
+import { prisma } from '../prisma';
 import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
 
 dotenv.config();

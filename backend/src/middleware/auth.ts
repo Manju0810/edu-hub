@@ -1,10 +1,13 @@
-import { NextFunction, Request, Response } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import type { NextFunction, Request, Response } from 'express';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 
 dotenv.config();
 
-const jwt_secret = process.env.JWT_SECRET!;
+const jwt_secret = process.env.JWT_SECRET;
+if (!jwt_secret) {
+  throw new Error('JWT_SECRET is not available in env');
+}
 
 export interface AuthPayload extends JwtPayload {
   userId: string;
