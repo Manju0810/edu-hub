@@ -1,0 +1,12 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.d.ts",
+    "**/package.json",
+    "**/package-lock.json"
+  ]
+}

@@ -1,7 +1,10 @@
-import { Request, Response } from 'express';
+import type { MaterialType } from '@prisma/client';
+import { Role } from '@prisma/client';
+import type { Request, Response } from 'express';
+
 import { prisma } from '../prisma';
-import { MaterialType, Role } from '@prisma/client';
-import { CustomRequest } from './course'; // Assuming it's exported from courseControllers
+
+import type { CustomRequest } from './course'; // Assuming it's exported from courseControllers
 
 interface Material {
   materialId: string;
@@ -205,7 +208,7 @@ export const deleteMaterialByMaterialId = async (
 };
 
 // Get Materials by Course Id
-export const getMaterialBycourseId = async (
+export const getMaterialByCourseId = async (
   req: Request<{ courseId: string }>,
   res: Response
 ) => {

@@ -30,7 +30,7 @@ export const LoginSchema = z.object({
 
 // 1. should register a new user when valid data is provided
 // 2. should return error when any required data is not provided
-// 3. should return error when password is not meeting requriements
+// 3. should return error when password is not meeting requirements
 // 4. should return error when invalid is provided
 // 5. should return error when mobile number is not valid
 // 5. should return error when role is invalid

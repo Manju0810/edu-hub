@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { login, register, getAllStudents } from '../controller/auth';
 import { verifyToken } from '../middleware/auth';
 import { validateBody } from '../middleware/validation';

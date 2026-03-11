@@ -1,8 +1,10 @@
-import { Request, Response } from 'express';
-import { prisma } from '../prisma';
-import { Level, Role } from '@prisma/client';
+import type { Level } from '@prisma/client';
+import { Role } from '@prisma/client';
 import dotenv from 'dotenv';
-import { AuthPayload } from '../middleware/auth';
+import type { Request, Response } from 'express';
+
+import type { AuthPayload } from '../middleware/auth';
+import { prisma } from '../prisma';
 
 dotenv.config();
 

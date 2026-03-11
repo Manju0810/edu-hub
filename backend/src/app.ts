@@ -1,7 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import authPayload from './routes/auth';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express from 'express';
+
+import authRoutes from './routes/auth';
+import courseRoutes from './routes/course';
+import materialRoutes from './routes/material';
 
 export const app = express();
 
@@ -18,4 +21,6 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'server is running' });
 });
 
-app.use('/api/auth', authPayload);
+app.use('/api/auth', authRoutes);
+app.use('/api/course', courseRoutes);
+app.use('/api/material', materialRoutes);
