@@ -26,6 +26,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
+      - name: Create .env file
+        run: |
+          # Create .env file
+          echo "PORT=5000" > .env
+          echo "JWT_SECRET=test_secret" >> .env
+          echo "DATABASE_URL=postgresql://user:password@localhost/db" >> .env
+
       # 3️⃣ Install dependencies and generate Prisma client
       - name: Install dependencies and generate Prisma client
         run: |
@@ -34,9 +41,4 @@ jobs:
 
       # 4️⃣ Run Unit Tests
       - name: Run Unit Tests
-        run: |
-          # Create .env file
-          echo "PORT=5000" > .env
-          echo "JWT_SECRET=test_secret" >> .env
-          echo "DATABASE_URL=postgresql://user:password@localhost/db" >> .env
-          npm test
+        run: npm test
