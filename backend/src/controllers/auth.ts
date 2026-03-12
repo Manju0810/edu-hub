@@ -3,21 +3,11 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
 
-import type { AuthPayload } from '../middleware/auth';
 import { prisma } from '../prisma';
+import type { AuthPayload, Query } from '../types/types';
 import { cookieOptions, generateToken, saltRounds } from '../utils/auth';
 
-dotenv.config();
-
-interface Query {
-  page?: string;
-  limit?: string;
-  sortBy?: 'username' | 'email';
-  order?: 'asc' | 'desc';
-  search?: string;
-}
-
-export interface CustomRequest<
+interface CustomRequest<
   TParams = object,
   TBody = object,
   TQuery = object,
@@ -25,6 +15,7 @@ export interface CustomRequest<
   user?: AuthPayload;
 }
 
+dotenv.config();
 export const register = async (req: Request, res: Response) => {
   const { username, mobileNumber, profileImage, email, password, role } =
     req.body;
@@ -39,7 +30,7 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
     // Create user
     const user = await prisma.user.create({

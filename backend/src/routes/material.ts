@@ -6,8 +6,8 @@ import {
   updateMaterialByMaterialId,
   deleteMaterialByMaterialId,
   getMaterialByCourseId,
-} from '../controller/material';
-import { verifyToken } from '../middleware/auth';
+} from '../controllers/material';
+import { verifyToken } from '../middlewares/auth';
 
 const router = Router();
 

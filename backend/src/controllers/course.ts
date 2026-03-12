@@ -1,39 +1,19 @@
-import type { Level } from '@prisma/client';
 import { Role } from '@prisma/client';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
 
-import type { AuthPayload } from '../middleware/auth';
 import { prisma } from '../prisma';
+import type { Course, AuthPayload, Query } from '../types/types';
 
-dotenv.config();
-
-interface Query {
-  page?: string;
-  limit?: string;
-  sortBy?: 'username' | 'email';
-  order?: 'asc' | 'desc';
-  search?: string;
-}
-
-interface Course {
-  courseId: string;
-  title: string;
-  description: string;
-  courseStartDate: string;
-  courseEndDate: string;
-  category: string;
-  level: Level;
-  userId: string;
-}
-//Request<Params, ResBody, ReqBody, ReqQuery> //TQuery means  if no query is provided then it will be defaults to {}
-export interface CustomRequest<
+interface CustomRequest<
   TParams = object,
   TBody = object,
   TQuery = object,
 > extends Request<TParams, object, TBody, TQuery> {
   user?: AuthPayload;
 }
+
+dotenv.config();
 
 export const addCourse = async (
   req: CustomRequest<object, Course>,
