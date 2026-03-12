@@ -7,8 +7,8 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
-import { app } from '../src/app';
-import { prisma } from '../src/prisma';
+import { app } from '../../src/app';
+import { prisma } from '../../src/prisma';
 
 jest.mock('jsonwebtoken', () => ({
   __esModule: true,
@@ -18,7 +18,7 @@ jest.mock('jsonwebtoken', () => ({
   },
 }));
 
-jest.mock('../src/prisma', () => ({
+jest.mock('../../src/prisma', () => ({
   __esModule: true,
   prisma: mockDeep<PrismaClient>(),
 }));
@@ -76,11 +76,35 @@ describe('Register Endpoint Tests', () => {
 
     prismaMock.user.create.mockResolvedValue(mockPrismaCreateResponse);
     mockJwt.sign.mockReturnValue('fake-token' as never);
-
+    
     const response = await request(app)
       .post('/api/auth/register')
       .send(mockValidRegisterPayload);
 
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: {
+        email: mockValidRegisterPayload.email,
+      },
+    });
+    expect(prismaMock.user.create).toHaveBeenCalledWith({
+      data: {
+        username: mockValidRegisterPayload.username,
+        email: mockValidRegisterPayload.email,
+        role: mockValidRegisterPayload.role,
+        mobileNumber: mockValidRegisterPayload.mobileNumber,
+        profileImage: mockValidRegisterPayload.profileImage,
+        password: expect.any(String),
+      },
+       select: {
+        userId: true,
+        username: true,
+        email: true,
+        role: true,
+        mobileNumber: true,
+        profileImage: true,
+        createdAt: true,
+      },
+    });
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('User registered successfully');

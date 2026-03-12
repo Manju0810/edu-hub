@@ -7,8 +7,8 @@ import {
   getCourseByCourseId,
   getCoursesByUserId,
   updateCourse,
-} from '../controller/course';
-import { verifyToken } from '../middleware/auth';
+} from '../controllers/course';
+import { verifyToken } from '../middlewares/auth';
 
 const router = Router();
 

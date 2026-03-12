@@ -8,9 +8,9 @@ import {
   getEnrollsByCourseId,
   getEnrollsByUserId,
   updateEnrollByEnrollId,
-} from '../controller/enrollment';
-import { verifyToken } from '../middleware/auth';
-import { validateBody } from '../middleware/validation';
+} from '../controllers/enrollment';
+import { verifyToken } from '../middlewares/auth';
+import { validateBody } from '../middlewares/validation';
 import { AddEnrollSchema, UpdateEnrollSchema } from '../validation/schemas';
 
 const router = Router();

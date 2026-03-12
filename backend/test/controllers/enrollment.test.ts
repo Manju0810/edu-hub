@@ -6,8 +6,8 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
-import { app } from '../src/app';
-import { prisma } from '../src/prisma';
+import { app } from '../../src/app';
+import { prisma } from '../../src/prisma';
 
 jest.mock('jsonwebtoken', () => ({
   __esModule: true,
@@ -17,7 +17,7 @@ jest.mock('jsonwebtoken', () => ({
   },
 }));
 
-jest.mock('../src/prisma', () => ({
+jest.mock('../../src/prisma', () => ({
   __esModule: true,
   prisma: mockDeep<PrismaClient>(),
 }));
