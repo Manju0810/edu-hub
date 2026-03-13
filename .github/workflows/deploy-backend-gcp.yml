@@ -73,7 +73,7 @@ jobs:
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.GCP_VM_PORT }}
-          source: "deploy-files.tar.gz"
+          source: "backend/deploy-files.tar.gz"
           target: "/home/${{ secrets.GCP_VM_USERNAME }}/edu-hub-deploy"
 
       # 8️⃣ SSH into VM and deploy
