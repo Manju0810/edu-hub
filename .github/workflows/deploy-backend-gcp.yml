@@ -1,0 +1,109 @@
+name: Deploy Backend to GCP VM
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend  # all run steps execute in backend folder
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3️⃣️ Generate .env file for build context
+      - name: Create .env file
+        run: |
+          echo "PORT=5000" > .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+
+      # 4️⃣ Build Docker image for production
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: edu-hub-backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      # 5️⃣ Save Docker image as tar file
+      - name: Save Docker image
+        run: |
+          mkdir -p dist
+          docker save edu-hub-backend:latest -o backend-image.tar
+          echo "📊 Docker image size:"
+          du -h backend-image.tar
+
+      # 6️⃣ Compress docker-compose files and env
+      - name: Archive deployment files
+        run: |
+          tar -czf deploy-files.tar.gz \
+            docker-compose.prod.yml \
+            Dockerfile \
+            scripts/start.sh \
+            .env \
+            backend-image.tar
+          echo "📦 Archive size:"
+          du -h deploy-files.tar.gz
+
+      # 7️⃣ Copy deployment package to GCP VM via SCP
+      - name: Copy files to GCP VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.GCP_VM_PORT }}
+          source: "deploy-files.tar.gz"
+          target: "/home/${{ secrets.GCP_VM_USERNAME }}/edu-hub-deploy"
+
+      # 8️⃣ SSH into VM and deploy
+      - name: Deploy on GCP VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.GCP_VM_PORT }}
+          script: |
+            set -e
+
+            DEPLOY_DIR="/home/${{ secrets.GCP_VM_USERNAME }}/edu-hub-deploy"
+            cd "$DEPLOY_DIR"
+
+            # Extract deployment files
+            tar -xzf deploy-files.tar.gz
+
+            # Load Docker image
+            docker load -i backend-image.tar
+
+            # Stop and remove existing containers
+            docker compose -f docker-compose.prod.yml down || true
+
+            # Pull latest image (use local from load)
+            # Bring up services
+            docker compose -f docker-compose.prod.yml up -d
+
+            # Cleanup old images (optional)
+            docker image prune -f
+
+            echo "Deployment completed successfully"
