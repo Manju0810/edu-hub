@@ -37,8 +37,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: false
           load: true
           tags: edu-hub-backend:latest
@@ -51,7 +51,7 @@ jobs:
           mkdir -p dist
           docker save edu-hub-backend:latest -o backend-image.tar
           echo "📊 Docker image size:"
-          du -h backend-image.tar
+          ls -lh backend-image.tar
 
       # 6️⃣ Compress docker-compose files and env
       - name: Archive deployment files
