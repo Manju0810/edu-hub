@@ -58,6 +58,7 @@ jobs:
         run: |
           tar -czf deploy-files.tar.gz \
             docker-compose.prod.yml \
+            docker-compose.yml \
             Dockerfile \
             scripts/start.sh \
             .env \
