@@ -66,7 +66,57 @@ jobs:
           echo "📦 Archive size:"
           du -h deploy-files.tar.gz
 
-      # 7️⃣ Copy deployment package to GCP VM via SCP
+      # 7️⃣ Validate deployment package on GitHub runner
+      - name: Extract and validate deployment package
+        run: |
+          # Extract the archive to a temporary directory
+          mkdir -p tmp-deploy
+          tar -xzf deploy-files.tar.gz -C tmp-deploy
+          
+          # Change to the temporary directory
+          cd tmp-deploy
+          
+          # Load the Docker image from the extracted tar
+          docker load -i backend-image.tar
+          
+          # Start services using docker-compose
+          docker compose -f docker-compose.prod.yml up -d
+          
+          # Wait for container to be ready
+          sleep 5
+          
+          # Check container status
+          docker ps
+          
+          # Test the health endpoint
+          RESPONSE=$(curl -s http://localhost:5000/api/ping)
+          echo "Backend response: $RESPONSE"
+          
+          # Validate response using jq
+          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
+          if [ "$MESSAGE" != "server is running" ]; then
+            echo "Backend not responding correctly"
+            exit 1
+          fi
+          
+          # Show Docker image size
+          echo "Listing all Docker images:"
+          docker images
+          IMAGE_NAME=edu-hub-backend
+          IMAGE_TAG=latest
+          SIZE_BYTES=$(docker inspect ${IMAGE_NAME}:${IMAGE_TAG} --format='{{.Size}}')
+          SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
+          echo "Docker image size: ${SIZE_MB} MB"
+          
+          # Cleanup - stop containers and remove image
+          docker compose -f docker-compose.prod.yml down
+          docker rmi edu-hub-backend:latest || true
+          
+          # Return to working directory
+          cd ..
+          rm -rf tmp-deploy
+
+      # 8️⃣ Copy deployment package to GCP VM via SCP
       - name: Copy files to GCP VM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -108,8 +158,33 @@ jobs:
             # Pull latest image (use local from load)
             # Bring up services
             docker compose -f docker-compose.prod.yml up -d
+            sleep 5
+            docker ps
 
             # Cleanup old images (optional)
             docker image prune -f
 
             echo "Deployment completed successfully"
+
+      - name: Test backend HTTP endpoint
+        run: |
+          RESPONSE=$(curl -s http://localhost:5000/api/ping)
+          echo "Backend response: $RESPONSE"
+          
+          # Extract the message field using 'jq' (JSON parser)
+          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
+          
+          if [ "$MESSAGE" != "server is running" ]; then
+            echo "Backend not responding correctly"
+            exit 1
+          fi
+
+      - name: Show Docker image size in bytes
+        run: |
+          echo "Listing all Docker images:"
+          docker images
+          IMAGE_NAME=edu-hub-backend
+          IMAGE_TAG=latest
+          SIZE_BYTES=$(docker inspect ${IMAGE_NAME}:${IMAGE_TAG} --format='{{.Size}}')
+          SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
+          echo "Docker image size: ${SIZE_MB} MB"
