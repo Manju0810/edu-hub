@@ -102,6 +102,9 @@ jobs:
             # Stop and remove existing containers
             docker compose -f docker-compose.prod.yml down || true
 
+            # Remove old container if exists
+            docker rm -f edu-hub-backend || true
+
             # Pull latest image (use local from load)
             # Bring up services
             docker compose -f docker-compose.prod.yml up -d
