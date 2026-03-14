@@ -35,11 +35,16 @@ Add the following secrets to your GitHub repository (`Settings > Secrets and var
 - **Description**: SSH port number (default: `22`)
 - **Example**: `22` or custom port if configured
 
-### 5. `JWT_SECRET`
+### 5. `GCP_SSH_PASSPHRASE` (Optional)
+- **Description**: Passphrase for the SSH private key if it is encrypted
+- **Example**: `your-ssh-key-passphrase`
+- **Note**: Only required if your SSH private key is encrypted with a passphrase
+
+### 6. `JWT_SECRET`
 - **Description**: The JWT secret for your backend application
 - **Example**: `your-super-secret-jwt-key-change-this-in-production`
 
-### 6. `DATABASE_URL`
+### 7. `DATABASE_URL`
 - **Description**: Database connection URL
 - **Example**: `postgresql://user:password@host:port/database?sslmode=require`
 
@@ -80,27 +85,33 @@ mkdir -p ~/edu-hub-deploy
 
 The workflow performs these steps:
 
-1. **Checkout** repository code
-2. **Set up SSH key** - Configures SSH key and adds VM to known hosts
-3. **Set up Docker Buildx** - Prepares Docker Buildx for building
-4. **Generate .env file** - Creates a `.env` file with:
+1. **Checkout repository** - Pulls the latest code from the repository
+
+2. **Set up Docker Buildx** - Prepares Docker Buildx for building with caching support
+
+3. **Generate .env file** - Creates a `.env` file with:
    - `PORT=5000`
    - `JWT_SECRET` from GitHub secrets
    - `DATABASE_URL` from GitHub secrets
-5. **Build Docker image** - Uses multi-stage build:
-   - **Build stage**: Installs dependencies, generates Prisma client, builds TypeScript
-   - **Production stage**: Copies production dependencies, compiled dist, and Prisma client
+
+4. **Build Docker image** - Uses multi-stage build:
+   - **Build stage**: Installs dependencies, generates Prisma client, builds TypeScript, captures Git commit info
+   - **Production stage**: Copies production dependencies, compiled dist, Prisma client, and commit-info.json
    - Uses Docker layer caching with local cache
    - Tags image as `edu-hub-backend:latest`
-6. **Save Docker image** - Exports the built image to `backend-image.tar`
-7. **Archive deployment files** - Creates `deploy-files.tar.gz` containing:
+
+5. **Save Docker image** - Exports the built image to `backend-image.tar`
+
+6. **Archive deployment files** - Creates `deploy-files.tar.gz` containing:
    - `docker-compose.prod.yml`
    - `Dockerfile`
    - `scripts/start.sh`
    - `.env` (with secrets)
    - `backend-image.tar`
-8. **Copy files to GCP VM** - Transfers the archive to `/home/{username}/edu-hub-deploy/` using SCP
-9. **Deploy on GCP VM** via SSH:
+
+7. **Copy files to GCP VM** - Transfers the archive to `/home/{username}/edu-hub-deploy/` using SCP with SSH key authentication
+
+8. **Deploy on GCP VM** via SSH:
    - Extract the archive
    - Load Docker image from tar: `docker load -i backend-image.tar`
    - Stop and remove existing containers: `docker compose -f docker-compose.prod.yml down`
