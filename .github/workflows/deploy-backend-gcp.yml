@@ -93,7 +93,7 @@ jobs:
             cd "$DEPLOY_DIR"
 
             # Extract deployment files
-            tar -xzf deploy-files.tar.gz
+            tar -xzf backend/deploy-files.tar.gz
 
             # Load Docker image
             docker load -i backend-image.tar
