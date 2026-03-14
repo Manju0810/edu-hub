@@ -1,3 +1,6 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
+
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -18,8 +21,38 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-app.get('/api/ping', (req, res) => {
-  res.json({ message: 'server is running' });
+app.get('/api/ping', async (req, res) => {
+  try {
+    const commitInfoPath = join(process.cwd(), 'commit-info.json');
+    let commitInfo = null;
+
+    try {
+      const data = await readFile(commitInfoPath, 'utf-8');
+      commitInfo = JSON.parse(data);
+    } catch {
+      // commit-info.json not found or unreadable
+      commitInfo = {
+        commitHash: 'unknown',
+        commitDate: 'unknown',
+        buildTime: 'unknown',
+      };
+    }
+
+    res.json({
+      message: 'server is running',
+      deployment: commitInfo,
+    });
+  } catch (error) {
+    console.error('Error reading commit info:', error);
+    res.json({
+      message: 'server is running',
+      deployment: {
+        commitHash: 'unknown',
+        commitDate: 'unknown',
+        buildTime: 'unknown',
+      },
+    });
+  }
 });
 
 app.use('/api/auth', authRoutes);

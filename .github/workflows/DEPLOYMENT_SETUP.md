@@ -148,9 +148,27 @@ docker ps
 # Check logs
 docker compose -f ~/edu-hub-deploy/docker-compose.prod.yml logs -f
 
-# Test the health endpoint (if /api/ping route exists)
+# Test the ping endpoint with deployment info
 curl http://your-vm-ip:5000/api/ping
 ```
+
+The response will include deployment metadata:
+
+```json
+{
+  "message": "server is running",
+  "deployment": {
+    "commitHash": "abc123...",
+    "commitDate": "2025-03-14 08:30:00 +0000",
+    "buildTime": "2025-03-14T08:30:00Z"
+  }
+}
+```
+
+**Fields:**
+- `commitHash`: The Git commit hash that was deployed
+- `commitDate`: The date/time of the commit (from Git)
+- `buildTime`: The timestamp when the Docker image was built (UTC)
 
 ## Rollback (if needed)
 
@@ -211,6 +229,11 @@ docker compose -f docker-compose.prod.yml up -d
 - Verify Prisma schema is valid
 - Check that the build step completes successfully (TypeScript compilation)
 
+### Commit Info Not Showing
+- Verify the `commit-info.json` file is created during the Docker build (check build logs)
+- The file is generated from the Git repository during the build stage
+- If building locally without `.git` directory, it will show `"unknown"` values
+
 ### Prisma Migration Failures
 - The `start.sh` script runs `npx prisma migrate deploy` which requires the database to be accessible
 - Check that `DATABASE_URL` is correctly set in the `.env` file on the VM
@@ -229,3 +252,14 @@ docker compose -f docker-compose.prod.yml up -d
 - The `docker image prune -f` command removes intermediate and dangling images to free up space on the VM
 - The database migrations are applied during container startup, not during image build
 - The production image uses only production dependencies (`npm ci --omit=dev`)
+
+## Deployment Information Endpoint
+
+The `/api/ping` endpoint now returns deployment metadata including the Git commit hash, commit date, and build timestamp. This information is captured during the Docker build process and stored in a `commit-info.json` file inside the container.
+
+**Implementation details:**
+- The Docker build stage captures Git information and writes it to `commit-info.json`
+- This file is copied to the production image
+- The `/api/ping` endpoint reads this file and returns it in the response
+- If the file is missing or unreadable, the endpoint returns `"unknown"` values
+- This allows you to verify which exact version is deployed on the server
