@@ -18,6 +18,8 @@ export default tseslint.config(
       'jest.config.ts',
       'prisma.config.ts',
       'test/**',
+      'reports/**',
+      '.stryker-tmp/**',
     ],
   },
 
