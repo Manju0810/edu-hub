@@ -189,29 +189,6 @@ jobs:
             echo "Backend not responding correctly"
             exit 1
           fi
-      - name: Test backend HTTP endpoint
-        run: |
-          MAX_RETRIES=10
-          RETRY_DELAY=3
-          MESSAGE=""
-          
-          for i in $(seq 1 $MAX_RETRIES); do
-            RESPONSE=$(curl -s http://localhost:5000/api/ping || true)
-            if [[ -n "$RESPONSE" ]]; then
-              MESSAGE=$(echo "$RESPONSE" | jq -r '.message' || true)
-              if [[ "$MESSAGE" == "server is running" ]]; then
-                echo "Backend is up!"
-                break
-              fi
-            fi
-            echo "Waiting for backend... ($i/$MAX_RETRIES)"
-            sleep $RETRY_DELAY
-          done
-          
-          if [[ "$MESSAGE" != "server is running" ]]; then
-            echo "Backend not responding correctly"
-            exit 1
-          fi
 
       - name: Show Docker image size in bytes
         run: |
