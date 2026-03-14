@@ -79,7 +79,7 @@ jobs:
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USERNAME }}
-          keyPath: ~/.ssh/id_rsa
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.GCP_VM_PORT }}
           source: "backend/deploy-files.tar.gz"
           target: "/home/${{ secrets.GCP_VM_USERNAME }}/edu-hub-deploy"
@@ -90,7 +90,7 @@ jobs:
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USERNAME }}
-          keyPath: ~/.ssh/id_rsa
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.GCP_VM_PORT }}
           script: |
             set -e
