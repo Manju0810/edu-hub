@@ -165,13 +165,3 @@ jobs:
             docker image prune -f
 
             echo "Deployment completed successfully"
-
-      - name: Show Docker image size in bytes
-        run: |
-          echo "Listing all Docker images:"
-          docker images
-          IMAGE_NAME=edu-hub-backend
-          IMAGE_TAG=latest
-          SIZE_BYTES=$(docker inspect ${IMAGE_NAME}:${IMAGE_TAG} --format='{{.Size}}')
-          SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
-          echo "Docker image size: ${SIZE_MB} MB"
