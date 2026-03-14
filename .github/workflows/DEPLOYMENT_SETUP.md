@@ -81,18 +81,61 @@ mkdir -p ~/edu-hub-deploy
 The workflow performs these steps:
 
 1. **Checkout** repository code
-2. **Set up** Docker Buildx
-3. **Generate** `.env` file with GitHub secrets
-4. **Build** Docker image using the Dockerfile (multi-stage build)
-5. **Save** the image to a tar file
-6. **Prepare** deployment package with docker-compose.prod.yml, Dockerfile, scripts, .env, and image tar
-7. **Transfer** the package to the VM via SCP
-8. **Extract** files on the VM
-9. **Load** the Docker image
-10. **Stop & Remove** existing containers
-11. **Start** new containers with `docker compose up -d`
-12. **Verify** backend health with `/api/ping` endpoint
-13. **Cleanup** old unused images
+2. **Set up SSH key** - Configures SSH key and adds VM to known hosts
+3. **Set up Docker Buildx** - Prepares Docker Buildx for building
+4. **Generate .env file** - Creates a `.env` file with:
+   - `PORT=5000`
+   - `JWT_SECRET` from GitHub secrets
+   - `DATABASE_URL` from GitHub secrets
+5. **Build Docker image** - Uses multi-stage build:
+   - **Build stage**: Installs dependencies, generates Prisma client, builds TypeScript
+   - **Production stage**: Copies production dependencies, compiled dist, and Prisma client
+   - Uses Docker layer caching with local cache
+   - Tags image as `edu-hub-backend:latest`
+6. **Save Docker image** - Exports the built image to `backend-image.tar`
+7. **Archive deployment files** - Creates `deploy-files.tar.gz` containing:
+   - `docker-compose.prod.yml`
+   - `Dockerfile`
+   - `scripts/start.sh`
+   - `.env` (with secrets)
+   - `backend-image.tar`
+8. **Copy files to GCP VM** - Transfers the archive to `/home/{username}/edu-hub-deploy/` using SCP
+9. **Deploy on GCP VM** via SSH:
+   - Extract the archive
+   - Load Docker image from tar: `docker load -i backend-image.tar`
+   - Stop and remove existing containers: `docker compose -f docker-compose.prod.yml down`
+   - Start new containers: `docker compose -f docker-compose.prod.yml up -d`
+   - Cleanup unused images: `docker image prune -f`
+
+## Deployment Configuration
+
+### Docker Image
+- **Image name**: `edu-hub-backend:latest`
+- **Base image**: Node.js 24 (slim variant)
+- **Port**: 5000 (exposed and mapped)
+- **Working directory**: `/app`
+
+### Docker Compose
+- **Production compose file**: `docker-compose.prod.yml`
+- **Extends**: `docker-compose.yml` (base configuration)
+- **Environment**: `NODE_ENV=production`
+- **Command**: `npm start` which executes `node dist/index.js`
+- **Entry point on container startup**: `scripts/start.sh`
+  - Runs `npx prisma migrate deploy` to apply database migrations
+  - Then starts the server with `npm start`
+
+### Start Script
+The `scripts/start.sh` ensures Prisma migrations are applied before starting the server:
+```bash
+#!/bin/sh
+set -e
+
+echo "Running Prisma migrations..."
+npx prisma migrate deploy
+
+echo "Starting server..."
+npm start
+```
 
 ## Deployment Validation
 
@@ -102,26 +145,44 @@ After deployment, verify the backend is running:
 # Check container status
 docker ps
 
-# Test the health endpoint
-curl http://your-vm-ip:5000/api/ping
-
-# View logs
+# Check logs
 docker compose -f ~/edu-hub-deploy/docker-compose.prod.yml logs -f
+
+# Test the health endpoint (if /api/ping route exists)
+curl http://your-vm-ip:5000/api/ping
 ```
 
 ## Rollback (if needed)
 
-The workflow keeps the previous image on the VM. To manually rollback:
+If the new deployment fails, you can manually rollback:
 
 ```bash
 cd ~/edu-hub-deploy
-docker compose down
-# Find previous image
+
+# Stop current containers
+docker compose -f docker-compose.prod.yml down
+
+# List Docker images to find the previous edu-hub-backend image
 docker images | grep edu-hub-backend
-# Tag the previous version as latest
-docker tag edu-hub-backend:previous-tag edu-hub-backend:latest
-docker compose up -d
+
+# Load a previously saved image if you have a backup tar file, or
+# rebuild from previous git commit by triggering a deployment from an earlier commit
+
+# If you have a backup of the previous image tar:
+docker load -i previous-backup.tar
+
+# Or if the previous image still exists in Docker storage:
+# Tag the previous version as latest (find the correct image ID)
+docker tag <previous-image-id> edu-hub-backend:latest
+
+# Restart with the previous image
+docker compose -f docker-compose.prod.yml up -d
 ```
+
+**Note**: The workflow does not keep versioned images. For proper rollback capability, consider:
+- Using version tags instead of `latest`
+- Keeping backup tar files of previous deployments
+- Implementing a blue-green deployment strategy
 
 ## Troubleshooting
 
@@ -148,11 +209,23 @@ docker compose up -d
 - Check the Dockerfile syntax
 - Ensure all dependencies are listed in package.json
 - Verify Prisma schema is valid
+- Check that the build step completes successfully (TypeScript compilation)
+
+### Prisma Migration Failures
+- The `start.sh` script runs `npx prisma migrate deploy` which requires the database to be accessible
+- Check that `DATABASE_URL` is correctly set in the `.env` file on the VM
+- Verify the database user has permissions to create/modify tables
+- Check Prisma migration history: `npx prisma migrate status`
 
 ## Notes
 
 - The workflow runs automatically on pushes to the `main` branch
-- The Docker image is built on GitHub Actions, not on the VM
-- The `.env` file is generated at build time with secrets injected
+- The Docker image is built on GitHub Actions using a multi-stage build for optimal production image size
+- The `.env` file is generated at build time with secrets injected from GitHub Secrets
 - The `docker-compose.prod.yml` uses `npm start` which runs Prisma migrations automatically via `scripts/start.sh`
-- The workflow includes a health check that will fail the deployment if the backend doesn't respond with "server is running" on `/api/ping`
+- The working directory for all GitHub Actions steps is the `backend` folder (set via `defaults.run.working-directory`)
+- The Docker image is built with `load: true` to save it locally for tar export, not pushed to a registry
+- The workflow includes Docker layer caching to speed up builds (`cache-from` and `cache-to` with local cache)
+- The `docker image prune -f` command removes intermediate and dangling images to free up space on the VM
+- The database migrations are applied during container startup, not during image build
+- The production image uses only production dependencies (`npm ci --omit=dev`)
