@@ -25,16 +25,51 @@ app.get('/api/ping', async (req, res) => {
   try {
     const commitInfoPath = join(process.cwd(), 'commit-info.json');
     let commitInfo = null;
-
     try {
       const data = await readFile(commitInfoPath, 'utf-8');
       commitInfo = JSON.parse(data);
+
+      // Convert timestamps to human-readable IST format
+      if (commitInfo.commitDate && commitInfo.commitDate !== 'unknown') {
+        commitInfo.commitDateIST = new Date(
+          commitInfo.commitDate
+        ).toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: 'long',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+      } else {
+        commitInfo.commitDateIST = 'unknown';
+      }
+
+      if (commitInfo.buildTime && commitInfo.buildTime !== 'unknown') {
+        commitInfo.buildTimeIST = new Date(commitInfo.buildTime).toLocaleString(
+          'en-IN',
+          {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'long',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }
+        );
+      } else {
+        commitInfo.buildTimeIST = 'unknown';
+      }
     } catch {
       // commit-info.json not found or unreadable
       commitInfo = {
         commitHash: 'unknown',
         commitDate: 'unknown',
+        commitDateIST: 'unknown',
         buildTime: 'unknown',
+        buildTimeIST: 'unknown',
       };
     }
 
@@ -49,7 +84,9 @@ app.get('/api/ping', async (req, res) => {
       deployment: {
         commitHash: 'unknown',
         commitDate: 'unknown',
+        commitDateIST: 'unknown',
         buildTime: 'unknown',
+        buildTimeIST: 'unknown',
       },
     });
   }
