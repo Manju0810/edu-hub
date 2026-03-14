@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate dev",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "stryker": "stryker run"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +36,9 @@
   "devDependencies": {
     "@cspell/eslint-plugin": "9.7.0",
     "@eslint/js": "9.39.4",
+    "@stryker-mutator/core": "8.7.1",
+    "@stryker-mutator/jest-runner": "8.7.1",
+    "@stryker-mutator/typescript-checker": "8.7.1",
     "@types/bcrypt": "6.0.0",
     "@types/cookie-parser": "1.4.10",
     "@types/cors": "2.8.19",
