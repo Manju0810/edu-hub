@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
 
 jobs:
   validate-docker:
@@ -14,7 +11,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend  # all run steps execute in backend folder
+        working-directory: backend # all run steps execute in backend folder
 
     steps:
       # 1️⃣ Checkout repo
@@ -32,29 +29,73 @@ jobs:
           echo "JWT_SECRET=test_secret" >> .env
           echo "DATABASE_URL=postgresql://user:password@localhost/db" >> .env
 
-      # 3️⃣ Build and validate prod environment
-      - name: Validate Prod Docker Compose
+        # 4️⃣ Build Docker image for production
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          load: true
+          tags: edu-hub-backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      # 5️⃣ Save Docker image as tar file
+      - name: Save Docker image
         run: |
-          docker compose -f docker-compose.prod.yml build
+          mkdir -p dist
+          docker save edu-hub-backend:latest -o backend-image.tar
+          echo "📊 Docker image size:"
+          ls -lh backend-image.tar
+
+      # 6️⃣ Compress docker-compose files and env
+      - name: Archive deployment files
+        run: |
+          tar -czf deploy-files.tar.gz \
+            docker-compose.prod.yml \
+            docker-compose.yml \
+            Dockerfile \
+            scripts/start.sh \
+            .env \
+            backend-image.tar
+          echo "📦 Archive size:"
+          du -h deploy-files.tar.gz
+
+      # 7️⃣ Validate deployment package on GitHub runner
+      - name: Extract and validate deployment package
+        run: |
+          # Extract the archive to a temporary directory
+          mkdir -p tmp-deploy
+          tar -xzf deploy-files.tar.gz -C tmp-deploy
+
+          # Change to the temporary directory
+          cd tmp-deploy
+
+          # Load the Docker image from the extracted tar
+          docker load -i backend-image.tar
+
+          # Start services using docker-compose
           docker compose -f docker-compose.prod.yml up -d
+
+          # Wait for container to be ready
           sleep 5
+
+          # Check container status
           docker ps
 
-      - name: Test backend HTTP endpoint
-        run: |
+          # Test the health endpoint
           RESPONSE=$(curl -s http://localhost:5000/api/ping)
           echo "Backend response: $RESPONSE"
-          
-          # Extract the message field using 'jq' (JSON parser)
+
+          # Validate response using jq
           MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
-          
           if [ "$MESSAGE" != "server is running" ]; then
             echo "Backend not responding correctly"
             exit 1
           fi
 
-      - name: Show Docker image size in bytes
-        run: |
+          # Show Docker image size
           echo "Listing all Docker images:"
           docker images
           IMAGE_NAME=edu-hub-backend
@@ -62,3 +103,11 @@ jobs:
           SIZE_BYTES=$(docker inspect ${IMAGE_NAME}:${IMAGE_TAG} --format='{{.Size}}')
           SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
           echo "Docker image size: ${SIZE_MB} MB"
+
+          # Cleanup - stop containers and remove image
+          docker compose -f docker-compose.prod.yml down
+          docker rmi edu-hub-backend:latest || true
+
+          # Return to working directory
+          cd ..
+          rm -rf tmp-deploy
