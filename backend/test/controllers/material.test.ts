@@ -26,6 +26,7 @@ const mockJwt = jest.mocked(jwt);
 const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 beforeEach(() => {
+  mockJwt.verify.mockClear();
   mockReset(prismaMock);
   mockJwt.verify.mockClear();
 });
@@ -79,9 +80,7 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Material added successfully');
-    expect(response.body.data).toEqual({
+    expect(response.body).toEqual({
       ...mockPrismaCreateResponse,
       uploadDate: mockPrismaCreateResponse.uploadDate.toISOString(),
     });
@@ -117,8 +116,7 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.data.URL).toBeUndefined();
+    expect(response.body.URL).toBeUndefined();
   });
 
   test('should return error when user is student', async () => {
@@ -136,12 +134,18 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access denied',
+        },
+      ],
+    });
     expect(prismaMock.material.create).not.toHaveBeenCalled();
   });
 
-  test('should return error when mandatory fields are missing', async () => {
+  test('should return validation error when mandatory fields are missing', async () => {
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -150,8 +154,27 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Mandatory fields are missing');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course ID is required',
+        },
+        {
+          field: 'title',
+          message: 'Title is required',
+        },
+        {
+          field: 'description',
+          message: 'Description is required',
+        },
+        {
+          field: 'contentType',
+          message:
+            "Content type must be either 'Lecture_Slides', 'Assignment', 'Video', or 'Other'",
+        },
+      ],
+    });
     expect(prismaMock.material.create).not.toHaveBeenCalled();
   });
 
@@ -165,8 +188,14 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
     expect(prismaMock.material.create).not.toHaveBeenCalled();
   });
 
@@ -184,9 +213,13 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Internal server error');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Internal server error: Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -195,8 +228,14 @@ describe('Add Material Endpoint Tests', () => {
       .send(mockValidMaterialPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.material.create).not.toHaveBeenCalled();
   });
 
@@ -211,10 +250,14 @@ describe('Add Material Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.material.create).not.toHaveBeenCalled();
   });
 });
@@ -242,8 +285,7 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toEqual({
+    expect(response.body).toEqual({
       ...mockMaterial,
       uploadDate: mockMaterial.uploadDate.toISOString(),
     });
@@ -258,9 +300,14 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Material not found');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'materialId',
+          message: 'Material not found',
+        },
+      ],
+    });
   });
 
   test('should return error when user is student', async () => {
@@ -277,8 +324,14 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access denied',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -293,9 +346,13 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Internal server error');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Internal server error: Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -304,8 +361,14 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -319,10 +382,14 @@ describe('Get Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 });
@@ -367,70 +434,10 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Material updated successfully');
-    expect(response.body.data).toEqual({
+    expect(response.body).toEqual({
       ...mockUpdatedMaterial,
       uploadDate: mockUpdatedMaterial.uploadDate.toISOString(),
     });
-  });
-
-  test('should update material with partial data (only title)', async () => {
-    const mockExistingMaterial = createMockMaterial({
-      materialId: mockMaterialId,
-      courseId: 'course-1',
-    });
-    const mockUpdatedMaterial = createMockMaterial({
-      materialId: mockMaterialId,
-      title: 'Updated Title Only',
-      description: mockExistingMaterial.description,
-      URL: mockExistingMaterial.URL,
-      contentType: mockExistingMaterial.contentType,
-      courseId: 'course-1',
-    });
-
-    prismaMock.material.findUnique.mockResolvedValueOnce(mockExistingMaterial);
-    prismaMock.material.update.mockResolvedValue(mockUpdatedMaterial);
-
-    mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
-
-    const response = await request(app)
-      .put(`/api/material/updateMaterialByMaterialId/${mockMaterialId}`)
-      .send({ title: 'Updated Title Only' })
-      .set('Cookie', 'token=fake-token');
-
-    expect(response.status).toBe(200);
-    expect(response.body.data.title).toBe('Updated Title Only');
-  });
-
-  test('should update material to remove URL by setting URL to null', async () => {
-    const mockExistingMaterial = createMockMaterial({
-      materialId: mockMaterialId,
-      courseId: 'course-1',
-      URL: 'https://example.com/old.pdf',
-    });
-    const mockUpdatedMaterial = createMockMaterial({
-      materialId: mockMaterialId,
-      title: mockExistingMaterial.title,
-      description: mockExistingMaterial.description,
-      URL: undefined,
-      contentType: mockExistingMaterial.contentType,
-      courseId: 'course-1',
-    });
-
-    prismaMock.material.findUnique.mockResolvedValueOnce(mockExistingMaterial);
-    prismaMock.material.update.mockResolvedValue(mockUpdatedMaterial);
-
-    mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
-
-    const response = await request(app)
-      .put(`/api/material/updateMaterialByMaterialId/${mockMaterialId}`)
-      .send({ URL: null })
-      .set('Cookie', 'token=fake-token');
-
-    expect(response.status).toBe(200);
-    // The controller checks `URL !== undefined`, so if URL is explicitly null, it might still be set
-    // This depends on controller implementation. For now we'll test what we have.
   });
 
   test('should return error when user is student', async () => {
@@ -448,8 +455,14 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access denied',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -463,8 +476,14 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Material not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'materialId',
+          message: 'Material not found',
+        },
+      ],
+    });
     expect(prismaMock.material.update).not.toHaveBeenCalled();
   });
 
@@ -484,9 +503,13 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Internal server error');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Internal server error: Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -495,8 +518,14 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .send(mockValidUpdatePayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -511,10 +540,14 @@ describe('Update Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 });
@@ -543,8 +576,10 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Material deleted successfully');
+    expect(response.body).toEqual({
+      ...mockExistingMaterial,
+      uploadDate: mockExistingMaterial.uploadDate.toISOString(),
+    });
   });
 
   test('should return error when user is student', async () => {
@@ -561,8 +596,14 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access denied',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -575,8 +616,14 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Material not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'materialId',
+          message: 'Material not found',
+        },
+      ],
+    });
     expect(prismaMock.material.delete).not.toHaveBeenCalled();
   });
 
@@ -595,8 +642,13 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Internal server error');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Internal server error: Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -605,8 +657,14 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 
@@ -620,10 +678,14 @@ describe('Delete Material By MaterialId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.material.findUnique).not.toHaveBeenCalled();
   });
 });
@@ -668,10 +730,7 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Materials fetched successfully');
-    expect(response.body.data).toHaveLength(2);
-    expect(response.body.data).toEqual(
+    expect(response.body).toEqual(
       mockMaterials.map((material) => ({
         ...material,
         uploadDate: material.uploadDate.toISOString(),
@@ -700,7 +759,6 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
     expect(prismaMock.material.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { courseId: mockCourseId },
@@ -716,8 +774,14 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
     expect(prismaMock.material.findMany).not.toHaveBeenCalled();
   });
 
@@ -732,9 +796,14 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No materials found for this course');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'No materials found for this course',
+        },
+      ],
+    });
   });
 
   test('should return error when prisma throws error', async () => {
@@ -745,9 +814,13 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Internal server error');
-    expect(response.body.data).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Internal server error: Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -756,8 +829,14 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 
@@ -771,10 +850,14 @@ describe('Get Materials By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 });

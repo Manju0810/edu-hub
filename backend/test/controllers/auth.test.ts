@@ -70,13 +70,12 @@ describe('Register Endpoint Tests', () => {
       role: mockValidRegisterPayload.role,
       mobileNumber: mockValidRegisterPayload.mobileNumber,
       profileImage: mockValidRegisterPayload.profileImage,
-      password: '',
       createdAt: new Date(),
     };
 
-    prismaMock.user.create.mockResolvedValue(mockPrismaCreateResponse);
+    prismaMock.user.create.mockResolvedValue(mockPrismaCreateResponse as any);
     mockJwt.sign.mockReturnValue('fake-token' as never);
-    
+
     const response = await request(app)
       .post('/api/auth/register')
       .send(mockValidRegisterPayload);
@@ -95,7 +94,7 @@ describe('Register Endpoint Tests', () => {
         profileImage: mockValidRegisterPayload.profileImage,
         password: expect.any(String),
       },
-       select: {
+      select: {
         userId: true,
         username: true,
         email: true,
@@ -106,9 +105,7 @@ describe('Register Endpoint Tests', () => {
       },
     });
     expect(response.status).toBe(201);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('User registered successfully');
-    expect(response.body.user).toEqual({
+    expect(response.body).toEqual({
       ...mockPrismaCreateResponse,
       createdAt: mockPrismaCreateResponse.createdAt.toISOString(),
     });
@@ -125,11 +122,13 @@ describe('Register Endpoint Tests', () => {
       .send(mockValidRegisterPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Error in registering user: Prisma Error'
-    );
-    expect(response.body.user).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Error in registering user: Prisma Error',
+        },
+      ],
+    });
     const cookies = response.headers['set-cookie'];
     expect(cookies).not.toBeDefined();
   });
@@ -142,19 +141,23 @@ describe('Register Endpoint Tests', () => {
       role: mockValidRegisterPayload.role,
       mobileNumber: mockValidRegisterPayload.mobileNumber,
       profileImage: mockValidRegisterPayload.profileImage,
-      password: '',
       createdAt: new Date(),
     };
-    prismaMock.user.findUnique.mockResolvedValue(mockPrismaResponse);
+    prismaMock.user.findUnique.mockResolvedValue(mockPrismaResponse as any);
 
     const response = await request(app)
       .post('/api/auth/register')
       .send(mockValidRegisterPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Email already exists');
-    expect(response.body.user).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'email',
+          message: 'Email already exists',
+        },
+      ],
+    });
     const cookies = response.headers['set-cookie'];
     expect(cookies).not.toBeDefined();
   });
@@ -163,29 +166,31 @@ describe('Register Endpoint Tests', () => {
     const response = await request(app).post('/api/auth/register').send({});
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toEqual([
-      {
-        field: 'username',
-        message: 'Username is required',
-      },
-      {
-        field: 'mobileNumber',
-        message: 'Mobile number is required',
-      },
-      { field: 'profileImage', message: 'Profile image URL is required' },
-      {
-        field: 'email',
-        message: 'Invalid email address',
-      },
-      {
-        field: 'password',
-        message: 'Password is required',
-      },
-      { field: 'role', message: "Role must be either 'student' or 'educator'" },
-    ]);
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'username',
+          message: 'Username is required',
+        },
+        {
+          field: 'mobileNumber',
+          message: 'Mobile number is required',
+        },
+        { field: 'profileImage', message: 'Profile image URL is required' },
+        {
+          field: 'email',
+          message: 'Invalid email address',
+        },
+        {
+          field: 'password',
+          message: 'Password is required',
+        },
+        {
+          field: 'role',
+          message: "Role must be either 'student' or 'educator'",
+        },
+      ],
+    });
   });
 
   test('should return validation error for invalid email', async () => {
@@ -197,12 +202,13 @@ describe('Register Endpoint Tests', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toContainEqual({
-      field: 'email',
-      message: 'Invalid email address',
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'email',
+          message: 'Invalid email address',
+        },
+      ],
     });
   });
 
@@ -215,12 +221,13 @@ describe('Register Endpoint Tests', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toContainEqual({
-      field: 'password',
-      message: 'Password must be at least 8 characters',
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'password',
+          message: 'Password must be at least 8 characters',
+        },
+      ],
     });
   });
 
@@ -234,12 +241,13 @@ describe('Register Endpoint Tests', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toContainEqual({
-      field: 'password',
-      message: 'Password must be at most 100 characters',
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'password',
+          message: 'Password must be at most 100 characters',
+        },
+      ],
     });
   });
 
@@ -252,12 +260,13 @@ describe('Register Endpoint Tests', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toContainEqual({
-      field: 'role',
-      message: "Role must be either 'student' or 'educator'",
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: "Role must be either 'student' or 'educator'",
+        },
+      ],
     });
   });
 });
@@ -286,9 +295,7 @@ describe('Login Endpoint Tests', () => {
       .send(mockValidLoginPayload);
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('User logged in successfully');
-    expect(response.body.user).toEqual({
+    expect(response.body).toEqual({
       ...mockPrismaLoginResponse,
       createdAt: mockPrismaLoginResponse.createdAt.toISOString(),
     });
@@ -305,9 +312,13 @@ describe('Login Endpoint Tests', () => {
       .send(mockValidLoginPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Error in user login: Prisma Error');
-    expect(response.body.user).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Error in user login: Prisma Error',
+        },
+      ],
+    });
     const cookies = response.headers['set-cookie'];
     expect(cookies).not.toBeDefined();
   });
@@ -318,9 +329,14 @@ describe('Login Endpoint Tests', () => {
       .send(mockValidLoginPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No user found');
-    expect(response.body.user).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'username',
+          message: 'No user found',
+        },
+      ],
+    });
     const cookies = response.headers['set-cookie'];
     expect(cookies).not.toBeDefined();
   });
@@ -336,15 +352,22 @@ describe('Login Endpoint Tests', () => {
       createdAt: new Date(),
       password: 'mock-password',
     };
-    prismaMock.user.findUnique.mockResolvedValue(mockPrismaLoginResponse);
+    prismaMock.user.findUnique.mockResolvedValue(
+      mockPrismaLoginResponse as any
+    );
     const response = await request(app)
       .post('/api/auth/login')
       .send(mockValidLoginPayload);
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('password invalid');
-    expect(response.body.user).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'password',
+          message: 'Invalid password',
+        },
+      ],
+    });
     const cookies = response.headers['set-cookie'];
     expect(cookies).not.toBeDefined();
   });
@@ -353,19 +376,18 @@ describe('Login Endpoint Tests', () => {
     const response = await request(app).post('/api/auth/login').send({});
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.errors).toBeDefined();
-    expect(response.body.errors).toEqual([
-      {
-        field: 'username',
-        message: 'Username is required',
-      },
-      {
-        field: 'password',
-        message: 'Password is required',
-      },
-    ]);
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'username',
+          message: 'Username is required',
+        },
+        {
+          field: 'password',
+          message: 'Password is required',
+        },
+      ],
+    });
   });
 });
 
@@ -406,16 +428,13 @@ describe('Get All Students Endpoint Tests', () => {
       .get('/api/auth/user/getAllStudents')
       .set('Cookie', 'token=fake-token');
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Students fetched successfully');
-    expect(response.body.students).toEqual(
-      mockPrismaCreateResponse.map((object) => {
-        return {
-          ...object,
-          createdAt: object.createdAt.toISOString(),
-        };
-      })
-    );
+    expect(response.body).toEqual({
+      students: mockPrismaCreateResponse.map((student) => ({
+        ...student,
+        createdAt: student.createdAt.toISOString(),
+      })),
+      count: mockPrismaCreateResponse.length,
+    });
   });
 
   test('should throw error when requested user role is student', async () => {
@@ -429,17 +448,28 @@ describe('Get All Students Endpoint Tests', () => {
       .get('/api/auth/user/getAllStudents')
       .set('Cookie', 'token=fake-token');
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access is denied');
-    expect(response.body.students).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
   });
 
   test('should throw error when no token is provided', async () => {
     const response = await request(app).get('/api/auth/user/getAllStudents');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
   });
 
   test('should throw error when jwt throws error', async () => {
@@ -451,10 +481,14 @@ describe('Get All Students Endpoint Tests', () => {
       .get('/api/auth/user/getAllStudents')
       .set('Cookie', 'token=fake-token');
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Jwt Error'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Jwt Error',
+        },
+      ],
+    });
   });
 
   test('should search students by username or email', async () => {
@@ -463,25 +497,17 @@ describe('Get All Students Endpoint Tests', () => {
         userId: 'mock-userid1',
         username: 'user1',
         email: 't@example.com',
-        role: 'student' as Role,
         mobileNumber: '1234567890',
-        profileImage: 'mock-profile-image-data',
-        createdAt: new Date(),
-        password: 'mock-password',
       },
       {
         userId: 'mock-userid2',
         username: 'user2',
         email: 'test2@example.com',
-        role: 'student' as Role,
         mobileNumber: '1234567890',
-        profileImage: 'mock-profile-image-data',
-        createdAt: new Date(),
-        password: 'mock-password',
       },
     ];
 
-    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse);
+    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse as any);
 
     mockJwt.verify.mockReturnValue({
       userId: 'mock-user',
@@ -495,16 +521,10 @@ describe('Get All Students Endpoint Tests', () => {
       )
       .set('Cookie', 'token=fake-token');
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Students fetched successfully');
-    expect(response.body.students).toEqual(
-      mockPrismaCreateResponse.map((object) => {
-        return {
-          ...object,
-          createdAt: object.createdAt.toISOString(),
-        };
-      })
-    );
+    expect(response.body).toEqual({
+      students: mockPrismaCreateResponse,
+      count: mockPrismaCreateResponse.length,
+    });
   });
 
   test('should sort students by username or email', async () => {
@@ -513,25 +533,17 @@ describe('Get All Students Endpoint Tests', () => {
         userId: 'mock-userid1',
         username: 'user1',
         email: 'test@example.com',
-        role: 'student' as Role,
         mobileNumber: '1234567890',
-        profileImage: 'mock-profile-image-data',
-        createdAt: new Date(),
-        password: 'mock-password',
       },
       {
         userId: 'mock-userid2',
         username: 'user2',
         email: 'test2@example.com',
-        role: 'student' as Role,
         mobileNumber: '1234567890',
-        profileImage: 'mock-profile-image-data',
-        createdAt: new Date(),
-        password: 'mock-password',
       },
     ];
 
-    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse);
+    prismaMock.user.findMany.mockResolvedValue(mockPrismaCreateResponse as any);
 
     mockJwt.verify.mockReturnValue({
       userId: 'mock-user',
@@ -543,15 +555,9 @@ describe('Get All Students Endpoint Tests', () => {
       .get('/api/auth/user/getAllStudents?sortBy=email&order=desc')
       .set('Cookie', 'token=fake-token');
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Students fetched successfully');
-    expect(response.body.students).toEqual(
-      mockPrismaCreateResponse.map((object) => {
-        return {
-          ...object,
-          createdAt: object.createdAt.toISOString(),
-        };
-      })
-    );
+    expect(response.body).toEqual({
+      students: mockPrismaCreateResponse,
+      count: mockPrismaCreateResponse.length,
+    });
   });
 });

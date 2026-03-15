@@ -23,9 +23,14 @@ export const verifyToken = (
   try {
     const token = req.cookies.token;
     if (!token) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'No token - Unauthorized' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'token',
+            message: 'No token - Unauthorized',
+          },
+        ],
+      });
     }
 
     const payload = jwt.verify(token, jwt_secret) as AuthPayload;
@@ -33,8 +38,12 @@ export const verifyToken = (
     return next();
   } catch (error) {
     return res.status(401).json({
-      success: false,
-      message: `Invalid token - Unauthorized: ${error}`,
+      errors: [
+        {
+          field: 'token',
+          message: `Invalid token - Unauthorized: ${(error as Error).message}`,
+        },
+      ],
     });
   }
 };

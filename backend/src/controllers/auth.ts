@@ -24,9 +24,14 @@ export const register = async (req: Request, res: Response) => {
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Email already exists' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'email',
+            message: 'Email already exists',
+          },
+        ],
+      });
     }
 
     // Hash password
@@ -56,14 +61,16 @@ export const register = async (req: Request, res: Response) => {
     const payload = { userId: user.userId, email: user.email, role: user.role };
     const token = generateToken(payload);
     res.cookie('token', token, cookieOptions);
-    return res
-      .status(201)
-      .json({ success: true, message: 'User registered successfully', user });
+    return res.status(201).json(user);
   } catch (error) {
     console.error(error);
-    return res
-      .status(400)
-      .json({ success: false, message: `Error in registering user: ${error}` });
+    return res.status(400).json({
+      errors: [
+        {
+          message: `Error in registering user: ${error}`,
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -74,26 +81,40 @@ export const login = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { username } });
     if (!user) {
-      return res.status(400).json({ success: false, message: 'No user found' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'username',
+            message: 'No user found',
+          },
+        ],
+      });
     }
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'password invalid' });
+      return res.status(401).json({
+        errors: [
+          {
+            field: 'password',
+            message: 'Invalid password',
+          },
+        ],
+      });
     }
     const payload = { userId: user.userId, email: user.email, role: user.role };
     const token = generateToken(payload);
 
     res.cookie('token', token, cookieOptions);
-    return res
-      .status(200)
-      .json({ success: true, message: 'User logged in successfully', user });
+    return res.status(200).json(user);
   } catch (error) {
     console.error(error);
-    return res
-      .status(400)
-      .json({ success: false, message: `Error in user login: ${error}` });
+    return res.status(400).json({
+      errors: [
+        {
+          message: `Error in user login: ${error}`,
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -106,9 +127,14 @@ export const getAllStudents = async (
   try {
     const requestedBy = req.user?.role === Role.educator;
     if (!requestedBy) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Access is denied' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'role',
+            message: 'Access is denied',
+          },
+        ],
+      });
     }
     const {
       page = 1,
@@ -144,17 +170,16 @@ export const getAllStudents = async (
     });
 
     const count = students.length;
-    return res.status(200).json({
-      success: true,
-      message: 'Students fetched successfully',
-      students,
-      count,
-    });
+    return res.status(200).json({ students, count });
   } catch (error) {
     console.error('Error in fetching students:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch students' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch students',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }

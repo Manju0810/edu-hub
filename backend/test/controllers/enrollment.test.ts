@@ -8,6 +8,7 @@ import request from 'supertest';
 
 import { app } from '../../src/app';
 import { prisma } from '../../src/prisma';
+import { error } from 'node:console';
 
 jest.mock('jsonwebtoken', () => ({
   __esModule: true,
@@ -80,9 +81,7 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollment added successfully');
-    expect(response.body.enrollment).toEqual({
+    expect(response.body).toEqual({
       ...mockPrismaCreateResponse,
       enrollmentDate: mockPrismaCreateResponse.enrollmentDate.toISOString(),
     });
@@ -97,9 +96,18 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
-    expect(response.body.enrollment).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'userId',
+          message: 'User ID is required',
+        },
+        {
+          field: 'courseId',
+          message: 'Course ID is required',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 
@@ -119,11 +127,14 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Enrollment already exists for this user and course'
-    );
-    expect(response.body.enrollment).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'enrollment',
+          message: 'Enrollment already exists for this user and course',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 
@@ -138,8 +149,14 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('User not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'userId',
+          message: 'User not found',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 
@@ -157,8 +174,14 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 
@@ -180,9 +203,13 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to add enrollment');
-    expect(response.body.enrollment).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to add enrollment',
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -191,8 +218,14 @@ describe('Add Enrollment Endpoint Tests', () => {
       .send(mockValidEnrollPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 
@@ -207,10 +240,14 @@ describe('Add Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.create).not.toHaveBeenCalled();
   });
 });
@@ -244,16 +281,13 @@ describe('Get All Enrollments Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollments fetched successfully');
-    expect(response.body.enrollments).toHaveLength(2);
-    expect(response.body.count).toBe(2);
-    expect(response.body.enrollments).toEqual(
-      mockEnrollments.map((enrollment) => ({
+    expect(response.body).toEqual({
+      enrollments: mockEnrollments.map((enrollment) => ({
         ...enrollment,
         enrollmentDate: enrollment.enrollmentDate.toISOString(),
-      }))
-    );
+      })),
+      count: mockEnrollments.length,
+    });
   });
 
   test('should fetch enrollments with pagination parameters', async () => {
@@ -355,7 +389,7 @@ describe('Get All Enrollments Endpoint Tests', () => {
     );
   });
 
-  test('should default to enrollmentDate sorting when invalid sortBy provided', async () => {
+  test('should return error when invalid sortBy provided', async () => {
     const mockEnrollments = [
       createMockEnrollment({
         enrollmentId: 'enrollment-1',
@@ -371,12 +405,15 @@ describe('Get All Enrollments Endpoint Tests', () => {
       .get('/api/enroll/getAllEnrolls?sortBy=invalidField')
       .set('Cookie', 'token=fake-token');
 
-    expect(response.status).toBe(200);
-    expect(prismaMock.enrollment.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orderBy: { enrollmentDate: 'desc' },
-      })
-    );
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'sortBy',
+          message: 'Invalid option: expected one of "enrollmentDate"|"status"',
+        },
+      ],
+    });
   });
 
   test('should return empty array when no enrollments exist', async () => {
@@ -388,9 +425,10 @@ describe('Get All Enrollments Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.enrollments).toEqual([]);
-    expect(response.body.count).toBe(0);
+    expect(response.body).toEqual({
+      enrollments: [],
+      count: 0,
+    });
   });
 
   test('should return error when prisma throws error', async () => {
@@ -404,9 +442,13 @@ describe('Get All Enrollments Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch enrollments');
-    expect(response.body.enrollments).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   });
 });
 
@@ -427,9 +469,7 @@ describe('Get Enrollment By EnrollmentId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollment fetched successfully');
-    expect(response.body.enrollment).toEqual({
+    expect(response.body).toEqual({
       ...mockEnrollment,
       enrollmentDate: mockEnrollment.enrollmentDate.toISOString(),
     });
@@ -443,9 +483,14 @@ describe('Get Enrollment By EnrollmentId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Enrollment not found');
-    expect(response.body.enrollment).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'enrollId',
+          message: 'Enrollment not found',
+        },
+      ],
+    });
   });
 
   test('should return error when prisma throws error', async () => {
@@ -458,9 +503,13 @@ describe('Get Enrollment By EnrollmentId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch enrollment');
-    expect(response.body.enrollment).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch enrollment',
+        },
+      ],
+    });
   });
 
   test('should handle invalid enrollmentId format', async () => {
@@ -469,8 +518,14 @@ describe('Get Enrollment By EnrollmentId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Enrollment not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'enrollId',
+          message: 'Enrollment not found',
+        },
+      ],
+    });
   });
 });
 
@@ -504,10 +559,7 @@ describe('Get Enrollments By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollments fetched successfully');
-    expect(response.body.enrollments).toHaveLength(2);
-    expect(response.body.enrollments).toEqual(
+    expect(response.body).toEqual(
       mockEnrollments.map((enrollment) => ({
         ...enrollment,
         enrollmentDate: enrollment.enrollmentDate.toISOString(),
@@ -524,11 +576,14 @@ describe('Get Enrollments By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'No enrollments found for the given user ID'
-    );
-    expect(response.body.enrollments).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'userId',
+          message: 'No enrollments found for the given user ID',
+        },
+      ],
+    });
   });
 
   test('should fetch enrollments with pagination for userId', async () => {
@@ -628,8 +683,13 @@ describe('Get Enrollments By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch enrollments');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   });
 });
 
@@ -663,10 +723,7 @@ describe('Get Enrollments By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollments fetched successfully');
-    expect(response.body.enrollments).toHaveLength(2);
-    expect(response.body.enrollments).toEqual(
+    expect(response.body).toEqual(
       mockEnrollments.map((enrollment) => ({
         ...enrollment,
         enrollmentDate: enrollment.enrollmentDate.toISOString(),
@@ -683,11 +740,14 @@ describe('Get Enrollments By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'No enrollments found for the given course ID'
-    );
-    expect(response.body.enrollments).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'No enrollments found for the given course ID',
+        },
+      ],
+    });
   });
 
   test('should fetch enrollments with pagination for courseId', async () => {
@@ -759,8 +819,13 @@ describe('Get Enrollments By CourseId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch enrollments');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   });
 });
 
@@ -798,9 +863,7 @@ describe('Update Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollment updated successfully');
-    expect(response.body.enrollment).toEqual({
+    expect(response.body).toEqual({
       ...mockUpdatedEnrollment,
       enrollmentDate: mockUpdatedEnrollment.enrollmentDate.toISOString(),
     });
@@ -815,8 +878,14 @@ describe('Update Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation Error');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'status',
+          message: "Status must be either 'Pending', 'Accepted', or 'Rejected'",
+        },
+      ],
+    });
     expect(prismaMock.enrollment.update).not.toHaveBeenCalled();
   });
 
@@ -830,8 +899,14 @@ describe('Update Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Enrollment not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'enrollId',
+          message: 'Enrollment not found',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.update).not.toHaveBeenCalled();
   });
 
@@ -852,8 +927,13 @@ describe('Update Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Failed to update enrollment');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Failed to update enrollment : Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -862,8 +942,14 @@ describe('Update Enrollment Endpoint Tests', () => {
       .send(mockValidUpdatePayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.findUnique).not.toHaveBeenCalled();
   });
 
@@ -878,10 +964,14 @@ describe('Update Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.findUnique).not.toHaveBeenCalled();
   });
 });
@@ -918,9 +1008,7 @@ describe('Delete Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Enrollment deleted successfully');
-    expect(response.body['Deleted enrollment details']).toEqual({
+    expect(response.body).toEqual({
       ...mockDeletedEnrollment,
       enrollmentDate: mockDeletedEnrollment.enrollmentDate.toISOString(),
     });
@@ -935,8 +1023,14 @@ describe('Delete Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Enrollment not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'enrollId',
+          message: 'Enrollment not found',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.delete).not.toHaveBeenCalled();
   });
 
@@ -954,8 +1048,13 @@ describe('Delete Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Failed to delete enrollment');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: `Failed to delete enrollment : Error: Database error`,
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -964,8 +1063,14 @@ describe('Delete Enrollment Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.findUnique).not.toHaveBeenCalled();
   });
 
@@ -979,10 +1084,14 @@ describe('Delete Enrollment Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.enrollment.findUnique).not.toHaveBeenCalled();
   });
 });

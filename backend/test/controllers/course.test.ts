@@ -26,6 +26,7 @@ const mockJwt = jest.mocked(jwt);
 const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 beforeEach(() => {
+  mockJwt.verify.mockClear();
   mockReset(prismaMock);
 });
 
@@ -70,7 +71,7 @@ describe('Add Course Endpoint Tests', () => {
     });
 
     prismaMock.course.findFirst.mockResolvedValue(null);
-    prismaMock.course.create.mockResolvedValue(mockPrismaCreateResponse);
+    prismaMock.course.create.mockResolvedValue(mockPrismaCreateResponse as any);
 
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
@@ -80,9 +81,7 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Course added successfully');
-    expect(response.body.course).toEqual({
+    expect(response.body).toEqual({
       ...mockPrismaCreateResponse,
       courseStartDate: mockPrismaCreateResponse.courseStartDate.toISOString(),
       courseEndDate: mockPrismaCreateResponse.courseEndDate.toISOString(),
@@ -104,13 +103,18 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access is denied');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
     expect(prismaMock.course.create).not.toHaveBeenCalled();
   });
 
-  test('should return error when mandatory fields are missing', async () => {
+  test('should return validation error when mandatory fields are missing', async () => {
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -119,9 +123,26 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Mandatory fields are missing');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        { field: 'title', message: 'Title is required' },
+        { field: 'description', message: 'Description is required' },
+        {
+          field: 'courseStartDate',
+          message: 'Course start date is required',
+        },
+        {
+          field: 'courseEndDate',
+          message: 'Course end date is required',
+        },
+        { field: 'category', message: 'Category is required' },
+        {
+          field: 'level',
+          message:
+            "Level must be either 'Beginner', 'Intermediate', or 'Advanced'",
+        },
+      ],
+    });
     expect(prismaMock.course.create).not.toHaveBeenCalled();
   });
 
@@ -131,7 +152,7 @@ describe('Add Course Endpoint Tests', () => {
       title: mockValidCoursePayload.title,
     });
 
-    prismaMock.course.findFirst.mockResolvedValue(existingCourse);
+    prismaMock.course.findFirst.mockResolvedValue(existingCourse as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -140,9 +161,14 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course with this title already exists');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'title',
+          message: 'Course with this title already exists',
+        },
+      ],
+    });
     expect(prismaMock.course.create).not.toHaveBeenCalled();
   });
 
@@ -158,9 +184,13 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to add course');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to add course',
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -169,8 +199,14 @@ describe('Add Course Endpoint Tests', () => {
       .send(mockValidCoursePayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.course.create).not.toHaveBeenCalled();
   });
 
@@ -185,10 +221,14 @@ describe('Add Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.course.create).not.toHaveBeenCalled();
   });
 });
@@ -215,7 +255,7 @@ describe('Get All Courses Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -223,17 +263,14 @@ describe('Get All Courses Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Courses fetched successfully');
-    expect(response.body.courses).toHaveLength(2);
-    expect(response.body.count).toBe(2);
-    expect(response.body.courses).toEqual(
-      mockCourses.map((course) => ({
+    expect(response.body).toEqual({
+      courses: mockCourses.map((course) => ({
         ...course,
         courseStartDate: course.courseStartDate.toISOString(),
         courseEndDate: course.courseEndDate.toISOString(),
-      }))
-    );
+      })),
+      count: mockCourses.length,
+    });
   });
 
   test('should fetch courses with pagination parameters', async () => {
@@ -245,15 +282,13 @@ describe('Get All Courses Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
       .get('/api/course/getAllCourses?page=2&limit=5')
       .set('Cookie', 'token=fake-token');
-
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
     expect(prismaMock.course.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         skip: 5,
@@ -271,7 +306,7 @@ describe('Get All Courses Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -279,7 +314,6 @@ describe('Get All Courses Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
     expect(prismaMock.course.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -301,7 +335,7 @@ describe('Get All Courses Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     await request(app)
@@ -323,7 +357,7 @@ describe('Get All Courses Endpoint Tests', () => {
     );
   });
 
-  test('should default to title sorting when invalid sortBy provided', async () => {
+  test('should return error when invalid sortBy provided', async () => {
     const mockCourses = [
       createMockCourse({
         courseId: 'course-1',
@@ -332,19 +366,22 @@ describe('Get All Courses Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
       .get('/api/course/getAllCourses?sortBy=invalidField')
       .set('Cookie', 'token=fake-token');
-
-    expect(response.status).toBe(200);
-    expect(prismaMock.course.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orderBy: { title: 'asc' },
-      })
-    );
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'sortBy',
+          message:
+            'Invalid option: expected one of "title"|"level"|"category"|"courseStartDate"|"courseEndDate"',
+        },
+      ],
+    });
   });
 
   test('should return empty array when no courses exist', async () => {
@@ -356,9 +393,10 @@ describe('Get All Courses Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.courses).toEqual([]);
-    expect(response.body.count).toBe(0);
+    expect(response.body).toEqual({
+      courses: [],
+      count: 0,
+    });
   });
 
   test('should return error when prisma throws error', async () => {
@@ -370,9 +408,13 @@ describe('Get All Courses Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch courses');
-    expect(response.body.courses).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch courses',
+        },
+      ],
+    });
   });
 });
 
@@ -386,16 +428,14 @@ describe('Get Course By CourseId Endpoint Tests', () => {
       description: 'Test Description',
     });
 
-    prismaMock.course.findUnique.mockResolvedValue(mockCourse);
+    prismaMock.course.findUnique.mockResolvedValue(mockCourse as any);
 
     const response = await request(app).get(
       `/api/course/getCourseByCourseId/${mockCourseId}`
     );
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Course fetched successfully');
-    expect(response.body.course).toEqual({
+    expect(response.body).toEqual({
       ...mockCourse,
       courseStartDate: mockCourse.courseStartDate.toISOString(),
       courseEndDate: mockCourse.courseEndDate.toISOString(),
@@ -410,9 +450,14 @@ describe('Get Course By CourseId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
   });
 
   test('should return error when prisma throws error', async () => {
@@ -423,9 +468,13 @@ describe('Get Course By CourseId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch course');
-    expect(response.body.course).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch course',
+        },
+      ],
+    });
   });
 
   test('should handle invalid courseId format', async () => {
@@ -434,8 +483,14 @@ describe('Get Course By CourseId Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
   });
 });
 
@@ -463,7 +518,7 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -471,10 +526,7 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Courses fetched successfully');
-    expect(response.body.courses).toHaveLength(2);
-    expect(response.body.courses).toEqual(
+    expect(response.body).toEqual(
       mockCourses.map((course) => ({
         ...course,
         courseStartDate: course.courseStartDate.toISOString(),
@@ -492,11 +544,14 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'No courses were created by the given user ID'
-    );
-    expect(response.body.courses).not.toBeDefined();
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'userId',
+          message: 'No courses were created by the given user ID',
+        },
+      ],
+    });
   });
 
   test('should fetch courses with pagination for userId', async () => {
@@ -509,7 +564,7 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -538,7 +593,7 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -569,7 +624,7 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       }),
     ];
 
-    prismaMock.course.findMany.mockResolvedValue(mockCourses);
+    prismaMock.course.findMany.mockResolvedValue(mockCourses as any);
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
     const response = await request(app)
@@ -595,8 +650,13 @@ describe('Get Courses By UserId Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Failed to fetch courses');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to fetch courses',
+        },
+      ],
+    });
   });
 });
 
@@ -632,8 +692,10 @@ describe('Update Course Endpoint Tests', () => {
       userId: 'educator-1',
     });
 
-    prismaMock.course.findUnique.mockResolvedValueOnce(mockExistingCourse);
-    prismaMock.course.update.mockResolvedValue(mockUpdatedCourse);
+    prismaMock.course.findUnique.mockResolvedValueOnce(
+      mockExistingCourse as any
+    );
+    prismaMock.course.update.mockResolvedValue(mockUpdatedCourse as any);
 
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
@@ -643,9 +705,7 @@ describe('Update Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Course updated successfully');
-    expect(response.body.course).toEqual({
+    expect(response.body).toEqual({
       ...mockUpdatedCourse,
       courseStartDate: mockUpdatedCourse.courseStartDate.toISOString(),
       courseEndDate: mockUpdatedCourse.courseEndDate.toISOString(),
@@ -667,8 +727,14 @@ describe('Update Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access is denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 
@@ -682,8 +748,14 @@ describe('Update Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
     expect(prismaMock.course.update).not.toHaveBeenCalled();
   });
 
@@ -692,7 +764,9 @@ describe('Update Course Endpoint Tests', () => {
       courseId: mockCourseId,
       userId: 'educator-1',
     });
-    prismaMock.course.findUnique.mockResolvedValue(mockExistingCourse);
+    prismaMock.course.findUnique.mockResolvedValueOnce(
+      mockExistingCourse as any
+    );
     prismaMock.course.update.mockRejectedValue(new Error('Database error'));
 
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
@@ -703,8 +777,13 @@ describe('Update Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Failed to update course');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to update course : Error: Database error',
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -713,8 +792,14 @@ describe('Update Course Endpoint Tests', () => {
       .send(mockValidUpdatePayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 
@@ -729,10 +814,14 @@ describe('Update Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 });
@@ -757,8 +846,10 @@ describe('Delete Course Endpoint Tests', () => {
       userId: 'educator-1',
     });
 
-    prismaMock.course.findUnique.mockResolvedValueOnce(mockExistingCourse);
-    prismaMock.course.delete.mockResolvedValue(mockDeletedCourse);
+    prismaMock.course.findUnique.mockResolvedValueOnce(
+      mockExistingCourse as any
+    );
+    prismaMock.course.delete.mockResolvedValue(mockDeletedCourse as any);
 
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
 
@@ -767,9 +858,7 @@ describe('Delete Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toBe('Course deleted successfully');
-    expect(response.body['Deleted course details']).toEqual({
+    expect(response.body).toEqual({
       ...mockDeletedCourse,
       courseStartDate: mockDeletedCourse.courseStartDate.toISOString(),
       courseEndDate: mockDeletedCourse.courseEndDate.toISOString(),
@@ -790,8 +879,14 @@ describe('Delete Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Access is denied');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 
@@ -804,8 +899,14 @@ describe('Delete Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(404);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Course not found');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'courseId',
+          message: 'Course not found',
+        },
+      ],
+    });
     expect(prismaMock.course.delete).not.toHaveBeenCalled();
   });
 
@@ -814,7 +915,9 @@ describe('Delete Course Endpoint Tests', () => {
       courseId: mockCourseId,
       userId: 'educator-1',
     });
-    prismaMock.course.findUnique.mockResolvedValue(mockExistingCourse);
+    prismaMock.course.findUnique.mockResolvedValueOnce(
+      mockExistingCourse as any
+    );
     prismaMock.course.delete.mockRejectedValue(new Error('Database error'));
 
     mockJwt.verify.mockReturnValue(mockEducatorAuthPayload as never);
@@ -824,8 +927,13 @@ describe('Delete Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Failed to delete course');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          message: 'Failed to delete course : Error: Database error',
+        },
+      ],
+    });
   });
 
   test('should return error when no token is provided', async () => {
@@ -834,8 +942,14 @@ describe('Delete Course Endpoint Tests', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('No token - Unauthorized');
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 
@@ -849,10 +963,14 @@ describe('Delete Course Endpoint Tests', () => {
       .set('Cookie', 'token=fake-token');
 
     expect(response.status).toBe(401);
-    expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe(
-      'Invalid token - Unauthorized: Error: Invalid token'
-    );
+    expect(response.body).toEqual({
+      errors: [
+        {
+          field: 'token',
+          message: 'Invalid token - Unauthorized: Invalid token',
+        },
+      ],
+    });
     expect(prismaMock.course.findUnique).not.toHaveBeenCalled();
   });
 });

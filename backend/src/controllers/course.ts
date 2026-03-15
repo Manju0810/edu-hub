@@ -32,9 +32,14 @@ export const addCourse = async (
 
   try {
     if (!creatorRole) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Access is denied' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'role',
+            message: 'Access is denied',
+          },
+        ],
+      });
     }
     if (
       !title ||
@@ -44,9 +49,14 @@ export const addCourse = async (
       !category ||
       !level
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Mandatory fields are missing' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'body',
+            message: 'Mandatory fields are missing',
+          },
+        ],
+      });
     }
 
     const existingCourse = await prisma.course.findFirst({
@@ -54,8 +64,12 @@ export const addCourse = async (
     });
     if (existingCourse) {
       return res.status(400).json({
-        success: false,
-        message: 'Course with this title already exists',
+        errors: [
+          {
+            field: 'title',
+            message: 'Course with this title already exists',
+          },
+        ],
       });
     }
 
@@ -80,14 +94,16 @@ export const addCourse = async (
         userId: true,
       },
     });
-    return res
-      .status(200)
-      .json({ success: true, message: 'Course added successfully', course });
+    return res.status(200).json(course);
   } catch (error) {
     console.error('Error in adding course:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to add course' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to add course',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -142,17 +158,16 @@ export const getAllCourses = async (
     });
 
     const count = courses.length;
-    return res.status(200).json({
-      success: true,
-      message: 'Courses fetched successfully',
-      courses,
-      count,
-    });
+    return res.status(200).json({ courses, count });
   } catch (error) {
     console.error('Error in fetching courses:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch courses' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch courses',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -180,20 +195,25 @@ export const getCourseByCourseId = async (
       },
     });
     if (!course) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Course not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'courseId',
+            message: 'Course not found',
+          },
+        ],
+      });
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Course fetched successfully',
-      course,
-    });
+    return res.status(200).json(course);
   } catch (error) {
     console.error('Error in fetching course:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch course' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch course',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -252,20 +272,24 @@ export const getCoursesByUserId = async (
 
     if (courses.length === 0) {
       return res.status(404).json({
-        success: false,
-        message: 'No courses were created by the given user ID',
+        errors: [
+          {
+            field: 'userId',
+            message: 'No courses were created by the given user ID',
+          },
+        ],
       });
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Courses fetched successfully',
-      courses,
-    });
+    return res.status(200).json(courses);
   } catch (error) {
     console.error('Error in fetching courses:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch courses' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch courses',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -277,9 +301,14 @@ export const updateCourse = async (
 ) => {
   const requestedBy = req.user?.role === Role.educator;
   if (!requestedBy) {
-    return res
-      .status(400)
-      .json({ success: false, message: 'Access is denied' });
+    return res.status(400).json({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
   }
   const { courseId } = req.params;
   const {
@@ -300,9 +329,14 @@ export const updateCourse = async (
       },
     });
     if (!isCourseExisting) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Course not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'courseId',
+            message: 'Course not found',
+          },
+        ],
+      });
     }
     const course = await prisma.course.update({
       where: {
@@ -328,16 +362,16 @@ export const updateCourse = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Course updated successfully',
-      course,
-    });
+    return res.status(200).json(course);
   } catch (error) {
     console.error('Error in updating course:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: `Failed to update course : ${error}` });
+    return res.status(400).json({
+      errors: [
+        {
+          message: `Failed to update course : ${error}`,
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -349,9 +383,14 @@ export const deleteCourse = async (
 ) => {
   const requestedBy = req.user?.role === Role.educator;
   if (!requestedBy) {
-    return res
-      .status(400)
-      .json({ success: false, message: 'Access is denied' });
+    return res.status(400).json({
+      errors: [
+        {
+          field: 'role',
+          message: 'Access is denied',
+        },
+      ],
+    });
   }
   const { courseId } = req.params;
   try {
@@ -364,9 +403,14 @@ export const deleteCourse = async (
       },
     });
     if (!isCourseExisting) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Course not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'courseId',
+            message: 'Course not found',
+          },
+        ],
+      });
     }
     const course = await prisma.course.delete({
       where: {
@@ -384,16 +428,16 @@ export const deleteCourse = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Course deleted successfully',
-      'Deleted course details': course,
-    });
+    return res.status(200).json(course);
   } catch (error) {
     console.error('Error in deleting course:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: `Failed to delete course : ${error}` });
+    return res.status(400).json({
+      errors: [
+        {
+          message: `Failed to delete course : ${error}`,
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
