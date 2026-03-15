@@ -2,7 +2,7 @@
 
 **Last Updated:** March 14, 2026  
 **Status:** In Progress  
-**Target:** Production Deployment  
+**Target:** Production Deployment
 
 This document outlines all tasks needed to make the edu-hub backend production-ready, based on a comprehensive codebase analysis by a Senior Backend Architect.
 
@@ -11,6 +11,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 ## 🔴 CRITICAL (Must Fix Before Production)
 
 ### Security
+
 - [ ] **Remove hardcoded secrets from .env** - JWT_SECRET and DATABASE_URL are committed; rotate immediately and use GitHub Secrets
 - [ ] **Implement rate limiting** - Use `express-rate-limit` to prevent brute force attacks on auth endpoints
 - [ ] **Add security headers** - Integrate `helmet` middleware for XSS, HSTS, CSP protection
@@ -23,6 +24,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Password hashing** - Currently using bcrypt with saltRounds=12 in .env? Need to check saltRounds value and ensure it's >=12
 
 ### Database & Data Integrity
+
 - [ ] **Add database connection pooling** - Configure Prisma connection pool size for production load
 - [ ] **Add database health check** - Implement `/health/db` endpoint to verify DB connectivity
 - [ ] **Add Prisma migration safeguards** - Prevent accidental `prisma migrate dev` in production
@@ -31,6 +33,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add constraints** - `duration` check constraint (endDate > startDate), positive pricing if exists
 
 ### Error Handling & Observability
+
 - [ ] **Centralized error handler** - Create error handling middleware with proper logging
 - [ ] **Structured logging** - Replace `console.error` with `winston` or `pino` with JSON output
 - [ ] **Error monitoring** - Integrate Sentry or similar for production error tracking
@@ -42,9 +45,10 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 ## 🟡 HIGH (Important for Scalability & Reliability)
 
 ### Architecture & Code Quality
+
 - [ ] **Implement service layer** - Controllers have business logic; extract to services for testability
 - [ ] **Create repository pattern** - Abstract Prisma calls for easier DB swapping and testing
-- [ ] **Fix N+1 query problems** - 
+- [ ] **Fix N+1 query problems** -
   - `getEnrollsByUserId` with search does 3 queries (users, courses, enrollments)
   - `getEnrollsByCourseId` with search has similar issue
   - Use Prisma includes/selects efficiently
@@ -55,6 +59,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add input sanitization middleware** - Sanitize strings (trim, escape HTML)
 
 ### API Design
+
 - [ ] **Add pagination metadata** - Return `{ page, limit, total, totalPages }` with paginated responses
 - [ ] **Add API versioning** - Prefix routes with `/api/v1/`
 - [ ] **Implement field filtering** - Allow `?select=field1,field2` for performance
@@ -63,6 +68,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add idempotency keys** - For critical mutations (POST/PUT/DELETE) to prevent duplicates
 
 ### Testing
+
 - [ ] **Increase test coverage** - Currently only auth controller has tests
   - Write tests for: course, enrollment, material controllers
   - Write tests for all middleware
@@ -73,6 +79,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add performance tests** - Baseline response times with `autocannon` or `k6`
 
 ### DevOps & Monitoring
+
 - [ ] **Add health check endpoints** - `/health` (liveness) and `/health/ready` (readiness)
 - [ ] **Add metrics endpoint** - `/metrics` with Prometheus format (request count, latency, errors)
 - [ ] **Implement structured logging** - JSON logs with correlation IDs for request tracing
@@ -88,6 +95,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 ## 🟢 MEDIUM (Best Practices & Polish)
 
 ### Security Enhancements
+
 - [ ] **Implement refresh token rotation** - Add refresh tokens with rotation, not long-lived JWTs
 - [ ] **Add password reset flow** - Email-based password reset with token expiry
 - [ ] **Add email verification** - Verify user email before allowing login
@@ -98,6 +106,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Implement request signing** - Consider HMAC signatures for sensitive operations
 
 ### Code Quality & Maintainability
+
 - [ ] **Add TypeScript strict mode** - Enable `strict: true` in tsconfig (already strict, verify all issues resolved)
 - [ ] **Add zod validation for all inputs** - Validate query, params, body with schemas
 - [ ] **Remove duplicate dotenv.config()** - Only configure once in entry point (index.ts)
@@ -109,6 +118,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Extract magic strings** - Move hardcoded strings (role names, statuses) to constants
 
 ### Performance
+
 - [ ] **Add Redis caching** - Cache frequently accessed data (courses, materials, user profiles)
 - [ ] **Implement query optimization** - Add proper select/where clauses to avoid fetching unnecessary data
 - [ ] **Add database connection pool monitoring** - Monitor pool usage, add connection pool metrics
@@ -117,6 +127,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Optimize Docker image** - Use multi-stage builds properly, already good but could slim further
 
 ### Developer Experience
+
 - [ ] **Add debug middleware** - Conditional debug logging in development
 - [ ] **Add seed script** - Create database seed for development with sample data
 - [ ] **Add migration rollback strategy** - Document and test rollback procedures
@@ -126,6 +137,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add Makefile** - Common commands for dev, build, test, lint, db operations
 
 ### Testing & Quality Gates
+
 - [ ] **Add mutation testing** - Ensure tests actually catch bugs
 - [ ] **Add load testing** - Baseline performance metrics before scaling
 - [ ] **Add security scanning** - `npm audit`, Snyk, or OWASP dependency check in CI
@@ -138,6 +150,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 ## 🔵 LOW (Nice to Have)
 
 ### Observability & Operations
+
 - [ ] **Add distributed tracing** - OpenTelemetry integration for microservices future
 - [ ] **Add APM integration** - New Relic, Datadog, or similar for performance monitoring
 - [ ] **Add business metrics** - Track signups, course creations, enrollments
@@ -145,6 +158,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add audit trail table** - Track all create/update/delete operations with user + timestamp
 
 ### Security Hardening
+
 - [ ] **Add HIBP password check** - Check passwords against HaveIBeenPwned API
 - [ ] **Implement MFA** - Two-factor authentication using TOTP
 - [ ] **Add IP allowlisting** - For admin endpoints
@@ -152,12 +166,14 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - [ ] **Add OAuth2 providers** - Google, GitHub login options
 
 ### Code Quality
+
 - [ ] **Add functional programming utilities** - Consider `ramda` or `lodash/fp` for composition
 - [ ] **Add validation pipeline** - Chain multiple validators with proper error aggregation
 - [ ] **Create shared types package** - Extract types to separate package if multiple services planned
 - [ ] **Add custom test matchers** - Jest matchers for common assertions
 
 ### DevOps & Infrastructure
+
 - [ ] **Create Terraform/Deployment configs** - IaC for GCP VM provisioning
 - [ ] **Add blue-green deployment** - Zero-downtime deployments
 - [ ] **Add database migration automation** - Auto-apply migrations on startup with safety checks
@@ -170,6 +186,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 ## 🎯 Recommended Implementation Order
 
 ### Phase 1 (Week 1-2): Critical Security & Stability
+
 - Remove hardcoded secrets, rotate credentials
 - Implement rate limiting, helmet, CORS fixes
 - Centralized error handling + structured logging
@@ -178,6 +195,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - Add `.dockerignore` and Docker healthcheck
 
 ### Phase 2 (Week 3-4): Architecture Refactoring
+
 - Implement service layer
 - Create repository pattern
 - Fix N+1 queries
@@ -186,6 +204,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - Remove duplicate code
 
 ### Phase 3 (Week 5-6): Testing & Quality
+
 - Increase test coverage (all controllers to 80%+)
 - Integration tests
 - Fix test environment
@@ -194,6 +213,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - Pre-commit hooks (Husky)
 
 ### Phase 4 (Week 7-8): Observability & Performance
+
 - Add health checks, metrics endpoints
 - Implement structured logging with request IDs
 - Add compression middleware
@@ -202,6 +222,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - Monitoring setup (Sentry/DataDog)
 
 ### Phase 5 (Week 9-10): Advanced Features
+
 - Refresh token rotation
 - Password reset flow
 - Email verification
@@ -211,6 +232,7 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 - Staging environment setup
 
 ### Phase 6 (Ongoing): Polish & DevEx
+
 - Makefile for common tasks
 - Database seed scripts
 - Developer documentation
@@ -222,15 +244,15 @@ This document outlines all tasks needed to make the edu-hub backend production-r
 
 ## 📊 Current State Assessment
 
-| Category | Status | Coverage |
-|----------|--------|----------|
-| **Security** | 🔴 Critical | 20% |
-| **Architecture** | 🟡 Medium | 60% |
-| **Testing** | 🔴 Critical | 15% (auth only) |
-| **DevOps** | 🟡 Medium | 40% |
-| **Observability** | 🔴 Critical | 10% |
-| **Code Quality** | 🟢 Good | 70% |
-| **API Design** | 🟡 Medium | 50% |
+| Category          | Status      | Coverage        |
+| ----------------- | ----------- | --------------- |
+| **Security**      | 🔴 Critical | 20%             |
+| **Architecture**  | 🟡 Medium   | 60%             |
+| **Testing**       | 🔴 Critical | 15% (auth only) |
+| **DevOps**        | 🟡 Medium   | 40%             |
+| **Observability** | 🔴 Critical | 10%             |
+| **Code Quality**  | 🟢 Good     | 70%             |
+| **API Design**    | 🟡 Medium   | 50%             |
 
 ---
 
@@ -275,6 +297,7 @@ Update this checklist as tasks are completed. Use the following status indicator
 ---
 
 **Next Steps:** Start with Phase 1 CRITICAL items, especially:
+
 1. Rotate all exposed secrets immediately
 2. Set up proper GitHub Secrets for deployment
 3. Implement rate limiting and security headers

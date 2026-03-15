@@ -23,9 +23,14 @@ export const addEnroll = async (
 
   try {
     if (!userId || !courseId) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Mandatory fields are missing' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'body',
+            message: 'Mandatory fields are missing',
+          },
+        ],
+      });
     }
 
     const existingEnroll = await prisma.enrollment.findFirst({
@@ -33,8 +38,12 @@ export const addEnroll = async (
     });
     if (existingEnroll) {
       return res.status(400).json({
-        success: false,
-        message: 'Enrollment already exists for this user and course',
+        errors: [
+          {
+            field: 'enrollment',
+            message: 'Enrollment already exists for this user and course',
+          },
+        ],
       });
     }
 
@@ -42,18 +51,28 @@ export const addEnroll = async (
       where: { userId },
     });
     if (!userExists) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'userId',
+            message: 'User not found',
+          },
+        ],
+      });
     }
 
     const courseExists = await prisma.course.findUnique({
       where: { courseId },
     });
     if (!courseExists) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Course not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'courseId',
+            message: 'Course not found',
+          },
+        ],
+      });
     }
 
     const enrollment = await prisma.enrollment.create({
@@ -70,16 +89,16 @@ export const addEnroll = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollment added successfully',
-      enrollment,
-    });
+    return res.status(200).json(enrollment);
   } catch (error) {
     console.error('Error in adding enrollment:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to add enrollment' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to add enrollment',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -154,17 +173,16 @@ export const getAllEnrolls = async (
     });
 
     const count = enrollments.length;
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollments fetched successfully',
-      enrollments,
-      count,
-    });
+    return res.status(200).json({ enrollments, count });
   } catch (error) {
     console.error('Error in fetching enrollments:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch enrollments' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -189,20 +207,25 @@ export const getEnrollByEnrollId = async (
       },
     });
     if (!enrollment) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Enrollment not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'enrollId',
+            message: 'Enrollment not found',
+          },
+        ],
+      });
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollment fetched successfully',
-      enrollment,
-    });
+    return res.status(200).json(enrollment);
   } catch (error) {
     console.error('Error in fetching enrollment:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch enrollment' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch enrollment',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -268,20 +291,24 @@ export const getEnrollsByUserId = async (
 
     if (enrollments.length === 0) {
       return res.status(404).json({
-        success: false,
-        message: 'No enrollments found for the given user ID',
+        errors: [
+          {
+            field: 'userId',
+            message: 'No enrollments found for the given user ID',
+          },
+        ],
       });
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollments fetched successfully',
-      enrollments,
-    });
+    return res.status(200).json(enrollments);
   } catch (error) {
     console.error('Error in fetching enrollments:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch enrollments' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -345,20 +372,24 @@ export const getEnrollsByCourseId = async (
 
     if (enrollments.length === 0) {
       return res.status(404).json({
-        success: false,
-        message: 'No enrollments found for the given course ID',
+        errors: [
+          {
+            field: 'courseId',
+            message: 'No enrollments found for the given course ID',
+          },
+        ],
       });
     }
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollments fetched successfully',
-      enrollments,
-    });
+    return res.status(200).json(enrollments);
   } catch (error) {
     console.error('Error in fetching enrollments:', error);
-    return res
-      .status(400)
-      .json({ success: false, message: 'Failed to fetch enrollments' });
+    return res.status(400).json({
+      errors: [
+        {
+          message: 'Failed to fetch enrollments',
+        },
+      ],
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -373,9 +404,14 @@ export const updateEnrollByEnrollId = async (
 
   try {
     if (!status) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Status is required' });
+      return res.status(400).json({
+        errors: [
+          {
+            field: 'status',
+            message: 'Status is required',
+          },
+        ],
+      });
     }
 
     const existingEnroll = await prisma.enrollment.findUnique({
@@ -387,9 +423,14 @@ export const updateEnrollByEnrollId = async (
       },
     });
     if (!existingEnroll) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Enrollment not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'enrollId',
+            message: 'Enrollment not found',
+          },
+        ],
+      });
     }
 
     const enrollment = await prisma.enrollment.update({
@@ -408,16 +449,15 @@ export const updateEnrollByEnrollId = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollment updated successfully',
-      enrollment,
-    });
+    return res.status(200).json(enrollment);
   } catch (error) {
     console.error('Error in updating enrollment:', error);
     return res.status(400).json({
-      success: false,
-      message: `Failed to update enrollment : ${error}`,
+      errors: [
+        {
+          message: `Failed to update enrollment : ${error}`,
+        },
+      ],
     });
   } finally {
     await prisma.$disconnect();
@@ -439,9 +479,14 @@ export const deleteEnrollByEnrollId = async (
       },
     });
     if (!isEnrollExisting) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Enrollment not found' });
+      return res.status(404).json({
+        errors: [
+          {
+            field: 'enrollId',
+            message: 'Enrollment not found',
+          },
+        ],
+      });
     }
     const enrollment = await prisma.enrollment.delete({
       where: {
@@ -456,16 +501,15 @@ export const deleteEnrollByEnrollId = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollment deleted successfully',
-      'Deleted enrollment details': enrollment,
-    });
+    return res.status(200).json(enrollment);
   } catch (error) {
     console.error('Error in deleting enrollment:', error);
     return res.status(400).json({
-      success: false,
-      message: `Failed to delete enrollment : ${error}`,
+      errors: [
+        {
+          message: `Failed to delete enrollment : ${error}`,
+        },
+      ],
     });
   } finally {
     await prisma.$disconnect();

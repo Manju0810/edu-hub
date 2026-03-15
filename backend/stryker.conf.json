@@ -1,51 +1,38 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/refs/heads/master/docs/stryker-schema.json",
   "_comment": "Stryker configuration for mutation testing the edu-hub backend",
-  
-  "mutate": [
-    "src/**/*.ts",
-    "!src/**/*.d.ts"
-  ],
-  
+
+  "mutate": ["src/**/*.ts", "!src/**/*.d.ts"],
+
   "plugins": [
     "@stryker-mutator/jest-runner",
     "@stryker-mutator/typescript-checker"
   ],
-  
+
   "testRunner": "jest",
   "jest": {
     "configFile": "jest.config.ts"
   },
-  
-  "checkers": [
-    "typescript"
-  ],
-  
+
+  "checkers": ["typescript"],
+
   "tsconfigFile": "tsconfig.json",
-  
-  "reporters": [
-    "html",
-    "clear-text",
-    "progress"
-  ],
-  
+
+  "reporters": ["html", "clear-text", "progress"],
+
   "concurrency": 2,
-  
+
   "coverageAnalysis": "perTest",
-  
+
   "thresholds": {
     "high": 80,
     "low": 60,
     "break": 80
   },
-  
+
   "timeoutMS": 300,
-  
+
   "logLevel": "info",
-  
-  "ignorePatterns": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/coverage/**"
-  ]
+
+  "ignorePatterns": ["**/node_modules/**", "**/dist/**", "**/coverage/**"]
 }

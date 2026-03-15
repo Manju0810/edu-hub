@@ -27,8 +27,12 @@ describe('token verification tests', () => {
     verifyToken(req as CustomRequest, res as Response, next);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: 'No token - Unauthorized',
+      errors: [
+        {
+          field: 'token',
+          message: 'No token - Unauthorized',
+        },
+      ],
     });
 
     expect(next).not.toHaveBeenCalled();
@@ -38,7 +42,7 @@ describe('token verification tests', () => {
   test('should throw error when jwt throws error', () => {
     const req: Partial<CustomRequest> = {
       cookies: {
-        token: 'mock=token'
+        token: 'mock=token',
       },
     };
     const res: any = {
@@ -55,8 +59,12 @@ describe('token verification tests', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: expect.stringContaining('Invalid token - Unauthorized:'),
+      errors: [
+        {
+          field: 'token',
+          message: `Invalid token - Unauthorized: JWT Error`,
+        },
+      ],
     });
     expect(next).not.toHaveBeenCalled();
   });
@@ -64,7 +72,7 @@ describe('token verification tests', () => {
   test('should verify the token provided and call next function', () => {
     const req: Partial<CustomRequest> = {
       cookies: {
-        token: 'mock=token'
+        token: 'mock=token',
       },
     };
     const res: any = {
@@ -74,11 +82,11 @@ describe('token verification tests', () => {
     const next = jest.fn();
 
     mockJwt.verify.mockImplementation(() => {
-      return { 
-          username: 'test-user',
-          email: 'test-user@example.com',
-          role: 'student' as Role
-      } as never
+      return {
+        username: 'test-user',
+        email: 'test-user@example.com',
+        role: 'student' as Role,
+      } as never;
     });
 
     verifyToken(req as CustomRequest, res as Response, next);

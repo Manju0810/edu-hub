@@ -4,7 +4,9 @@ import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 
+import { generateOpenApiDocument } from './lib/openapi';
 import authRoutes from './routes/auth';
 import courseRoutes from './routes/course';
 import enrollmentRoutes from './routes/enrollment';
@@ -89,7 +91,10 @@ app.get('/api/ping', async (req, res) => {
   }
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/course', courseRoutes);
-app.use('/api/material', materialRoutes);
-app.use('/api/enroll', enrollmentRoutes);
+app.use('/', authRoutes);
+app.use('/', courseRoutes);
+app.use('/', materialRoutes);
+app.use('/', enrollmentRoutes);
+
+const swaggerSpec = generateOpenApiDocument();
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

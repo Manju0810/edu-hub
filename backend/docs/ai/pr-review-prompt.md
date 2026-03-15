@@ -24,8 +24,8 @@ Use the GitHub MCP server to:
 
 Tools to use:
 
-* github.get_pull_request
-* github.get_pull_request_files
+- github.get_pull_request
+- github.get_pull_request_files
 
 ---
 
@@ -36,12 +36,11 @@ Before reviewing code:
 1. Summarize the PR purpose
 2. Identify the main components affected
 3. List changed files grouped by type:
-
-   * backend
-   * frontend
-   * config
-   * tests
-   * infrastructure
+   - backend
+   - frontend
+   - config
+   - tests
+   - infrastructure
 
 Provide a short **PR summary**.
 
@@ -59,38 +58,38 @@ Check for:
 
 ### Correctness
 
-* Logic errors
-* Edge cases
-* Null checks
-* Error handling
+- Logic errors
+- Edge cases
+- Null checks
+- Error handling
 
 ### Code Quality
 
-* Readability
-* Naming conventions
-* Function complexity
-* Duplication
+- Readability
+- Naming conventions
+- Function complexity
+- Duplication
 
 ### Performance
 
-* Expensive loops
-* Inefficient database queries
-* Unnecessary allocations
-* Blocking operations
+- Expensive loops
+- Inefficient database queries
+- Unnecessary allocations
+- Blocking operations
 
 ### Security
 
-* Injection risks
-* Secrets in code
-* Unsafe deserialization
-* Authentication / authorization issues
+- Injection risks
+- Secrets in code
+- Unsafe deserialization
+- Authentication / authorization issues
 
 ### Maintainability
 
-* Test coverage
-* Code structure
-* Modularization
-* Documentation
+- Test coverage
+- Code structure
+- Modularization
+- Documentation
 
 ---
 
@@ -120,10 +119,10 @@ Provide improved code snippet.
 
 Evaluate whether the PR:
 
-* follows project architecture
-* introduces tight coupling
-* breaks separation of concerns
-* violates existing patterns
+- follows project architecture
+- introduces tight coupling
+- breaks separation of concerns
+- violates existing patterns
 
 ---
 
@@ -131,10 +130,10 @@ Evaluate whether the PR:
 
 Check if:
 
-* tests exist for new logic
-* edge cases are covered
-* integration tests are needed
-* regression risks exist
+- tests exist for new logic
+- edge cases are covered
+- integration tests are needed
+- regression risks exist
 
 Suggest missing tests.
 
@@ -210,11 +209,11 @@ Return the review structured as:
 
 ## Important Rules
 
-* Be concise but precise
-* Provide actionable suggestions
-* Prefer code examples
-* Assume production-level standards
-* Think like a senior reviewer
+- Be concise but precise
+- Provide actionable suggestions
+- Prefer code examples
+- Assume production-level standards
+- Think like a senior reviewer
 
 ---
 
